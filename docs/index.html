@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitor Quote — Serie A / La Liga / Ligue 1</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <h1>Monitor Quote <span class="sub">1X2 · segnale sul "2"</span></h1>
+  </div>
+  <div class="meta">
+    <div class="rule">Alert se quota <b>2</b> ≤ <b id="threshold">—</b></div>
+    <div class="stamp">Aggiornato: <span id="updated">—</span></div>
+    <div class="stamp">Crediti API rimasti: <span id="quota">—</span></div>
+  </div>
+</header>
+
+<div id="demoBanner" class="demo-banner" hidden>
+  Stai vedendo <b>dati di esempio</b>: il job non ha ancora scaricato quote reali. Lancia il workflow &laquo;Monitor quote&raquo; da GitHub Actions.
+</div>
+
+<nav class="controls">
+  <div class="filters" id="leagueFilters"></div>
+  <label class="toggle">
+    <input type="checkbox" id="onlyTriggered">
+    <span>Solo partite sotto soglia</span>
+  </label>
+  <label class="toggle">
+    <input type="checkbox" id="notify">
+    <span>Notifica browser</span>
+  </label>
+</nav>
+
+<main id="content">
+  <p class="loading">Caricamento quote…</p>
+</main>
+
+<section id="alertsSection" class="alerts" hidden>
+  <h2>Storico segnali</h2>
+  <ul id="alertsList"></ul>
+</section>
+
+<footer>
+  <p>Dati: <span id="provider">—</span>. Le quote sono indicative e possono differire da quelle del bookmaker al momento della giocata.</p>
+  <p id="errors" class="errors" hidden></p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

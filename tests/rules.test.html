@@ -1,0 +1,141 @@
+<!doctype html><meta charset="utf-8"><title>test rules</title><body><pre id="out">running…</pre>
+<script type="module">
+import { awayStats, isTriggered, annotate, collectTriggered, diffAgainstState } from '../scripts/rules.mjs';
+import { buildMessage } from '../scripts/alerts/telegram.mjs';
+
+const log = [];
+let fails = 0;
+function t(name, fn) {
+  try { fn(); log.push('PASS  ' + name); }
+  catch (e) { fails++; log.push('FAIL  ' + name + '\n        ' + e.message); }
+}
+function eq(a, b, msg) {
+  const A = JSON.stringify(a), B = JSON.stringify(b);
+  if (A !== B) throw new Error((msg ?? '') + ' atteso ' + B + ', ottenuto ' + A);
+}
+function ok(v, msg) { if (!v) throw new Error(msg ?? 'atteso true'); }
+
+const CFG = { threshold: 1.85, alertMode: 'any' };
+const mk = (id, home, away, prices) => ({
+  id, home, away, commenceTime: '2026-09-01T18:00:00Z',
+  books: prices.map((p, i) => ({ key: 'b' + i, title: 'Book ' + i, home: 3, draw: 3.3, away: p })),
+});
+const dataset = prices => ({ leagues: [{ key: 'k', label: 'Serie A', matches: prices }] });
+
+t('awayStats calcola min/max/avg/count', () => {
+  const s = awayStats(mk('1', 'A', 'B', [1.62, 1.70, 1.65]));
+  eq(s.min, 1.62); eq(s.max, 1.70); eq(s.count, 3);
+  ok(Math.abs(s.avg - 1.6566666) < 1e-5, 'media errata: ' + s.avg);
+});
+
+t('awayStats ignora quote non valide e restituisce null se vuoto', () => {
+  eq(awayStats({ books: [{ away: null }, { away: 0 }, { away: 'x' }] }), null);
+  eq(awayStats({ books: [] }), null);
+});
+
+t('modo any: basta un bookmaker sotto soglia', () => {
+  ok(isTriggered({ min: 1.80, max: 1.95, avg: 1.88 }, CFG));
+  ok(!isTriggered({ min: 1.86, max: 2.0, avg: 1.9 }, CFG));
+});
+
+t('soglia inclusiva: 1.85 esatto fa scattare', () => {
+  ok(isTriggered({ min: 1.85, max: 1.85, avg: 1.85 }, CFG));
+});
+
+t('modo best: serve che anche la quota piu alta sia sotto soglia', () => {
+  const cfg = { threshold: 1.85, alertMode: 'best' };
+  ok(!isTriggered({ min: 1.80, max: 1.95, avg: 1.88 }, cfg));
+  ok(isTriggered({ min: 1.70, max: 1.84, avg: 1.77 }, cfg));
+});
+
+t('modo average', () => {
+  const cfg = { threshold: 1.85, alertMode: 'average' };
+  ok(isTriggered({ min: 1.70, max: 1.95, avg: 1.82 }, cfg));
+  ok(!isTriggered({ min: 1.70, max: 2.20, avg: 1.95 }, cfg));
+});
+
+t('annotate ordina i bookmaker per quota 2 crescente', () => {
+  const d = dataset([mk('1', 'Lecce', 'Inter', [1.70, 1.62, 1.65])]);
+  annotate(d, CFG);
+  eq(d.leagues[0].matches[0].books.map(b => b.away), [1.62, 1.65, 1.70]);
+  ok(d.leagues[0].matches[0].triggered);
+});
+
+t('partita senza quota 2 non scatta e non rompe', () => {
+  const d = dataset([{ id: 'x', home: 'A', away: 'B', commenceTime: '2026-09-01T18:00:00Z', books: [] }]);
+  annotate(d, CFG);
+  eq(d.leagues[0].matches[0].triggered, false);
+  eq(collectTriggered(d, CFG), []);
+});
+
+t('collectTriggered elenca solo i book sotto soglia', () => {
+  const d = dataset([mk('1', 'Lecce', 'Inter', [1.62, 1.90, 1.80])]);
+  annotate(d, CFG);
+  const [a] = collectTriggered(d, CFG);
+  eq(a.matchingBooks.map(b => b.away), [1.62, 1.80]);
+  eq(a.minAway, 1.62); eq(a.bestAway, 1.90);
+  eq(a.league, 'Serie A'); eq(a.away, 'Inter');
+});
+
+t('collectTriggered esclude le partite sopra soglia', () => {
+  const d = dataset([mk('1', 'A', 'B', [2.30, 2.35]), mk('2', 'C', 'D', [1.44])]);
+  annotate(d, CFG);
+  eq(collectTriggered(d, CFG).map(a => a.id), ['2']);
+});
+
+t('dedup: alla seconda esecuzione identica non ci sono segnali nuovi', () => {
+  const d = dataset([mk('1', 'Lecce', 'Inter', [1.62])]);
+  annotate(d, CFG);
+  const trig = collectTriggered(d, CFG);
+  const r1 = diffAgainstState(trig, { active: {} });
+  eq(r1.fresh.length, 1);
+  const r2 = diffAgainstState(trig, { active: r1.nextActive });
+  eq(r2.fresh.length, 0);
+  eq(Object.keys(r2.nextActive), ['1']);
+});
+
+t('dedup: conserva triggeredAt originale tra i giri', () => {
+  const prev = { active: { '1': { triggeredAt: '2020-01-01T00:00:00.000Z', commenceTime: 'x' } } };
+  const r = diffAgainstState([{ id: '1', minAway: 1.6, commenceTime: 'x' }], prev);
+  eq(r.nextActive['1'].triggeredAt, '2020-01-01T00:00:00.000Z');
+});
+
+t('dedup: una partita risalita sopra soglia puo ri-allertare dopo', () => {
+  const trig = [{ id: '1', minAway: 1.6, commenceTime: 'x' }];
+  const r1 = diffAgainstState(trig, { active: {} });
+  const r2 = diffAgainstState([], { active: r1.nextActive });      // risale sopra soglia
+  eq(Object.keys(r2.nextActive), []);
+  const r3 = diffAgainstState(trig, { active: r2.nextActive });    // rientra
+  eq(r3.fresh.length, 1);
+});
+
+t('buildMessage contiene squadre, quote e soglia', () => {
+  const d = dataset([mk('1', 'Lecce', 'Inter', [1.62, 1.80])]);
+  annotate(d, CFG);
+  const msg = buildMessage(collectTriggered(d, CFG), 1.85, 'https://example.test/');
+  ok(msg.includes('Inter'), 'manca la squadra ospite');
+  ok(msg.includes('1.62'), 'manca la quota');
+  ok(msg.includes('1.85'), 'manca la soglia');
+  ok(msg.includes('1 segnale rilevato'), 'plurale errato: ' + msg.slice(0, 80));
+  ok(msg.includes('https://example.test/'), 'manca il link');
+});
+
+t('buildMessage fa escape dell HTML nei nomi squadra', () => {
+  const m = mk('1', '<b>Hack</b>', 'A & B', [1.50]);
+  const d = dataset([m]);
+  annotate(d, CFG);
+  const msg = buildMessage(collectTriggered(d, CFG), 1.85, '');
+  ok(msg.includes('&lt;b&gt;Hack&lt;/b&gt;'), 'nome casa non escapato');
+  ok(msg.includes('A &amp; B'), 'nome ospite non escapato');
+});
+
+t('buildMessage usa il plurale con piu segnali', () => {
+  const d = dataset([mk('1', 'A', 'B', [1.5]), mk('2', 'C', 'D', [1.4])]);
+  annotate(d, CFG);
+  const msg = buildMessage(collectTriggered(d, CFG), 1.85, '');
+  ok(msg.includes('2 segnali rilevati'), 'plurale errato');
+});
+
+document.getElementById('out').textContent =
+  log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
+</script>

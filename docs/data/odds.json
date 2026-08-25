@@ -1,0 +1,68 @@
+{
+  "demo": true,
+  "provider": "the-odds-api",
+  "fetchedAt": "2026-08-25T12:00:00Z",
+  "quota": { "remaining": "463", "used": "37", "lastCost": "1" },
+  "threshold": 1.85,
+  "alertMode": "any",
+  "triggeredCount": 2,
+  "errors": [],
+  "leagues": [
+    {
+      "key": "soccer_italy_serie_a", "label": "Serie A", "country": "IT",
+      "matches": [
+        {
+          "id": "m1", "commenceTime": "2026-08-29T18:45:00Z",
+          "home": "Lecce", "away": "Inter",
+          "books": [
+            { "key": "pinnacle", "title": "Pinnacle", "home": 6.10, "draw": 4.20, "away": 1.62 },
+            { "key": "unibet_it", "title": "Unibet (IT)", "home": 5.90, "draw": 4.10, "away": 1.65 },
+            { "key": "betclic", "title": "Betclic", "home": 6.00, "draw": 4.15, "away": 1.70 }
+          ],
+          "awayStats": { "min": 1.62, "max": 1.70, "avg": 1.6566666666666667, "count": 3 },
+          "triggered": true
+        },
+        {
+          "id": "m2", "commenceTime": "2026-08-30T16:00:00Z",
+          "home": "Roma", "away": "Torino",
+          "books": [
+            { "key": "pinnacle", "title": "Pinnacle", "home": 1.55, "draw": 4.30, "away": 6.40 },
+            { "key": "betsson", "title": "Betsson", "home": 1.57, "draw": 4.20, "away": 6.10 }
+          ],
+          "awayStats": { "min": 6.10, "max": 6.40, "avg": 6.25, "count": 2 },
+          "triggered": false
+        }
+      ]
+    },
+    {
+      "key": "soccer_spain_la_liga", "label": "La Liga", "country": "ES",
+      "matches": [
+        {
+          "id": "m3", "commenceTime": "2026-08-30T19:30:00Z",
+          "home": "Getafe", "away": "Real Madrid",
+          "books": [
+            { "key": "pinnacle", "title": "Pinnacle", "home": 7.50, "draw": 4.60, "away": 1.44 },
+            { "key": "betclic", "title": "Betclic", "home": 7.20, "draw": 4.50, "away": 1.48 }
+          ],
+          "awayStats": { "min": 1.44, "max": 1.48, "avg": 1.46, "count": 2 },
+          "triggered": true
+        }
+      ]
+    },
+    {
+      "key": "soccer_france_ligue_one", "label": "Ligue 1", "country": "FR",
+      "matches": [
+        {
+          "id": "m4", "commenceTime": "2026-08-31T18:45:00Z",
+          "home": "Nantes", "away": "Lille",
+          "books": [
+            { "key": "winamax", "title": "Winamax (FR)", "home": 3.10, "draw": 3.30, "away": 2.35 },
+            { "key": "pmu", "title": "PMU (FR)", "home": 3.05, "draw": 3.35, "away": 2.30 }
+          ],
+          "awayStats": { "min": 2.30, "max": 2.35, "avg": 2.325, "count": 2 },
+          "triggered": false
+        }
+      ]
+    }
+  ]
+}
