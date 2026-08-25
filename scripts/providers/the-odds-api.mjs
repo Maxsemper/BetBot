@@ -80,7 +80,7 @@ async function fetchLeague(league, config, apiKey) {
  * @returns {Promise<{provider:string, fetchedAt:string, quota:object, leagues:Array, errors:Array}>}
  */
 export async function fetchOdds(config) {
-  const apiKey = process.env.ODDS_API_KEY;
+  const apiKey = config.apiKey ?? globalThis.process?.env?.ODDS_API_KEY;
   if (!apiKey) {
     throw new Error('ODDS_API_KEY non impostata. Aggiungila come secret del repository.');
   }

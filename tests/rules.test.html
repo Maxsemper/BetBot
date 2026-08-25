@@ -1,6 +1,6 @@
 <!doctype html><meta charset="utf-8"><title>test rules</title><body><pre id="out">running…</pre>
 <script type="module">
-import { awayStats, isTriggered, annotate, collectTriggered, diffAgainstState } from '../scripts/rules.mjs';
+import { awayStats, isTriggered, annotate, collectTriggered, diffAgainstState, markExcluded, includedBooks } from '../scripts/rules.mjs';
 import { buildMessage } from '../scripts/alerts/telegram.mjs';
 
 const log = [];
@@ -136,6 +136,84 @@ t('buildMessage usa il plurale con piu segnali', () => {
   ok(msg.includes('2 segnali rilevati'), 'plurale errato');
 });
 
+
+t('exchange escluso dal calcolo ma conservato nei dati', () => {
+  const m = { id: '1', home: 'Fiorentina', away: 'Torino', commenceTime: 'x', books: [
+    { key: 'betfair_ex_eu', title: 'Betfair', home: 2, draw: 3, away: 1.10 },
+    { key: 'pinnacle', title: 'Pinnacle', home: 2, draw: 3, away: 5.01 },
+  ] };
+  const d = dataset([m]);
+  annotate(d, CFG);
+  eq(m.books.find(b => b.key === 'betfair_ex_eu').excluded, 'exchange');
+  eq(m.awayStats.min, 5.01, 'lo stats deve ignorare exchange:');
+  eq(m.triggered, false, 'non deve scattare:');
+});
+
+t('caso reale: Betfair 1.06 non fa piu scattare falsi allarmi', () => {
+  const d = dataset([{ id: '1', home: 'AS Roma', away: 'Atalanta BC', commenceTime: 'x', books: [
+    { key: 'betfair_ex_eu', title: 'Betfair', home: 2, draw: 3, away: 1.06 },
+    { key: 'pinnacle', title: 'Pinnacle', home: 2.4, draw: 3.5, away: 3.10 },
+    { key: 'betclic_fr', title: 'Betclic (FR)', home: 2.4, draw: 3.5, away: 3.50 },
+  ] }]);
+  annotate(d, CFG);
+  eq(collectTriggered(d, CFG), []);
+});
+
+t('exchange riammesso se excludeExchanges = false', () => {
+  const cfg = { threshold: 1.85, alertMode: 'any', excludeExchanges: false };
+  const d = dataset([{ id: '1', home: 'A', away: 'B', commenceTime: 'x', books: [
+    { key: 'betfair_ex_eu', title: 'Betfair', home: 2, draw: 3, away: 1.10 },
+    { key: 'pinnacle', title: 'Pinnacle', home: 2, draw: 3, away: 5.01 },
+  ] }]);
+  annotate(d, cfg);
+  eq(d.leagues[0].matches[0].triggered, true);
+});
+
+t('outlier scartato quando il campione e sufficiente', () => {
+  const cfg = { threshold: 1.85, alertMode: 'any', maxDeviation: 1.30 };
+  const d = dataset([mk('1', 'A', 'B', [1.20, 2.30, 2.35, 2.40, 2.45])]);
+  annotate(d, cfg);
+  const m = d.leagues[0].matches[0];
+  eq(m.books.find(b => b.away === 1.20).excluded, 'outlier');
+  eq(m.awayStats.min, 2.30);
+  eq(m.triggered, false);
+});
+
+t('outlier NON applicato con campione troppo piccolo', () => {
+  const cfg = { threshold: 1.85, alertMode: 'any', maxDeviation: 1.30 };
+  const d = dataset([mk('1', 'A', 'B', [1.20, 2.40])]);
+  annotate(d, cfg);
+  eq(d.leagues[0].matches[0].books.every(b => !b.excluded), true, 'nessuna esclusione attesa:');
+  eq(d.leagues[0].matches[0].triggered, true);
+});
+
+t('quote coerenti sotto soglia non vengono scartate come outlier', () => {
+  const cfg = { threshold: 1.85, alertMode: 'any', maxDeviation: 1.30 };
+  const d = dataset([mk('1', 'Lille', 'PSG', [1.65, 1.67, 1.68, 1.72, 1.78])]);
+  annotate(d, cfg);
+  const m = d.leagues[0].matches[0];
+  eq(m.books.every(b => !b.excluded), true, 'nessuna esclusione attesa:');
+  eq(m.triggered, true);
+  eq(m.awayStats.count, 5);
+});
+
+t('annotate mette i bookmaker esclusi in fondo', () => {
+  const d = dataset([{ id: '1', home: 'A', away: 'B', commenceTime: 'x', books: [
+    { key: 'betfair_ex_eu', title: 'Betfair', home: 2, draw: 3, away: 1.10 },
+    { key: 'pinnacle', title: 'Pinnacle', home: 2, draw: 3, away: 5.01 },
+    { key: 'betclic_fr', title: 'Betclic', home: 2, draw: 3, away: 4.80 },
+  ] }]);
+  annotate(d, CFG);
+  eq(d.leagues[0].matches[0].books.map(b => b.key), ['betclic_fr', 'pinnacle', 'betfair_ex_eu']);
+});
+
+t('collectTriggered riporta quanti book sono sotto soglia', () => {
+  const d = dataset([mk('1', 'A', 'B', [1.62, 1.80, 2.10, 2.15])]);
+  annotate(d, CFG);
+  const [a] = collectTriggered(d, CFG);
+  eq(a.booksUnderThreshold, 2);
+  eq(a.bookCount, 4);
+});
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>

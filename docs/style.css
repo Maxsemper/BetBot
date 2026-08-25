@@ -125,3 +125,10 @@ footer p { margin: 4px 0; }
   border-bottom: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
   color: var(--text); font-size: 13px;
 }
+
+.books tr.excluded td { color: var(--muted); opacity: .6; }
+.books .tag {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
+  border: 1px solid var(--line); border-radius: 4px;
+  padding: 1px 5px; margin-left: 6px; white-space: nowrap;
+}

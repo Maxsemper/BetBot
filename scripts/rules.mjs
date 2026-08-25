@@ -4,11 +4,58 @@
 
 const MAX_BOOKS_IN_ALERT = 6;
 
-/** Statistiche sulla quota "2" (squadra ospite) di una partita, su tutti i bookmaker. */
+// Gli exchange non sono bookmaker: su partite lontane il book e' vuoto e
+// mostrano prezzi privi di significato (1.06 sul "2" di una partita equilibrata).
+// Vanno esclusi dal calcolo, altrimenti generano quasi solo falsi allarmi.
+export const EXCHANGE_KEYS = new Set([
+  'betfair_ex_eu', 'betfair_ex_uk', 'betfair_ex_au', 'betfair_ex_row',
+  'matchbook', 'smarkets', 'betdaq',
+]);
+
+function median(sorted) {
+  const n = sorted.length;
+  return n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+}
+
+/**
+ * Marca i bookmaker da escludere dal calcolo, senza rimuoverli:
+ * restano nei dati (e nella pagina) con il motivo dell'esclusione.
+ *
+ *   'invalid'  quota assente o non valida
+ *   'exchange' e' un exchange, non un bookmaker
+ *   'outlier'  quota troppo distante dal consenso del mercato
+ */
+export function markExcluded(books, config) {
+  const excludeExchanges = config.excludeExchanges !== false;
+  const maxDeviation = config.maxDeviation ?? 0;
+
+  for (const b of books) {
+    if (typeof b.away !== 'number' || !(b.away > 0)) b.excluded = 'invalid';
+    else if (excludeExchanges && EXCHANGE_KEYS.has(b.key)) b.excluded = 'exchange';
+    else b.excluded = null;
+  }
+
+  // L'outlier si misura sulla mediana dei bookmaker rimasti: serve un campione
+  // minimo, altrimenti due quote discordanti si escluderebbero a vicenda.
+  const kept = books.filter(b => !b.excluded);
+  if (maxDeviation > 1 && kept.length >= 4) {
+    const med = median(kept.map(b => b.away).sort((a, b) => a - b));
+    for (const b of kept) {
+      const ratio = b.away / med;
+      if (ratio > maxDeviation || ratio < 1 / maxDeviation) b.excluded = 'outlier';
+    }
+  }
+
+  return books;
+}
+
+/** Bookmaker che concorrono al calcolo. */
+export const includedBooks = match => (match.books ?? [])
+  .filter(b => !b.excluded && typeof b.away === 'number' && b.away > 0);
+
+/** Statistiche sulla quota "2" (squadra ospite), sui soli bookmaker inclusi. */
 export function awayStats(match) {
-  const prices = (match.books ?? [])
-    .map(b => b.away)
-    .filter(p => typeof p === 'number' && p > 0);
+  const prices = includedBooks(match).map(b => b.away);
   if (!prices.length) return null;
   const sum = prices.reduce((a, b) => a + b, 0);
   return {
@@ -35,14 +82,16 @@ export function isTriggered(stats, { threshold, alertMode }) {
   }
 }
 
-/** Arricchisce ogni partita con statistiche e flag di trigger. Muta e restituisce data. */
+/** Arricchisce ogni partita con esclusioni, statistiche e flag di trigger. */
 export function annotate(data, config) {
   for (const league of data.leagues) {
     for (const match of league.matches) {
-      const stats = awayStats(match);
-      match.awayStats = stats;
-      match.triggered = isTriggered(stats, config);
-      match.books.sort((a, b) => a.away - b.away);
+      markExcluded(match.books, config);
+      match.awayStats = awayStats(match);
+      match.triggered = isTriggered(match.awayStats, config);
+      // Inclusi prima, per quota crescente; gli esclusi in fondo.
+      match.books.sort((a, b) =>
+        (a.excluded ? 1 : 0) - (b.excluded ? 1 : 0) || a.away - b.away);
     }
   }
   return data;
@@ -54,8 +103,9 @@ export function collectTriggered(data, config) {
   for (const league of data.leagues) {
     for (const match of league.matches) {
       if (!match.triggered) continue;
-      let books = match.books.filter(b => b.away <= config.threshold);
-      if (!books.length) books = match.books;
+      const usable = includedBooks(match);
+      let books = usable.filter(b => b.away <= config.threshold);
+      if (!books.length) books = usable;
       out.push({
         id: match.id,
         league: league.label,
@@ -65,6 +115,8 @@ export function collectTriggered(data, config) {
         commenceTime: match.commenceTime,
         matchingBooks: books.slice(0, MAX_BOOKS_IN_ALERT)
           .map(b => ({ key: b.key, title: b.title, away: b.away })),
+        booksUnderThreshold: usable.filter(b => b.away <= config.threshold).length,
+        bookCount: usable.length,
         bestAway: match.awayStats.max,
         minAway: match.awayStats.min,
         avgAway: match.awayStats.avg,

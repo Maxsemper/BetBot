@@ -4,6 +4,13 @@
 const REFRESH_MS = 15 * 60 * 1000; // ricontrolla il file ogni 15 min mentre la pagina e' aperta
 const state = { data: null, hidden: new Set(), onlyTriggered: false };
 
+// Perche' un bookmaker non concorre al calcolo (vedi scripts/rules.mjs).
+const EXCLUSION_LABEL = {
+  exchange: 'exchange, escluso',
+  outlier: 'fuori mercato, escluso',
+  invalid: 'quota non valida',
+};
+
 const $ = sel => document.querySelector(sel);
 
 const fmtTime = iso => new Date(iso).toLocaleString('it-IT', {
@@ -88,13 +95,14 @@ function matchCard(m, threshold) {
   el.className = 'match' + (m.triggered ? ' hit' : '');
 
   const s = m.awayStats ?? {};
+  const under = m.books.filter(b => !b.excluded && b.away <= threshold).length;
   el.innerHTML = `
     <div class="match-head">
       <div class="kickoff">${esc(fmtTime(m.commenceTime))}</div>
       <div class="teams">${esc(m.home)} <span style="opacity:.5">–</span> <span class="away">${esc(m.away)}</span></div>
       <div class="summary">
         ${m.triggered ? '<span class="badge">SEGNALE</span>' : ''}
-        <span class="best">min <b>${fmtOdd(s.min)}</b> · media ${fmtOdd(s.avg)} · ${s.count ?? 0} book</span>
+        <span class="best">min <b>${fmtOdd(s.min)}</b> · media ${fmtOdd(s.avg)} · ${s.count ?? 0} book${under ? ` · <b>${under}</b> sotto soglia` : ""}</span>
       </div>
     </div>`;
 
@@ -106,11 +114,11 @@ function matchCard(m, threshold) {
       <thead><tr><th>Bookmaker</th><th>1</th><th>X</th><th>2</th></tr></thead>
       <tbody>
         ${m.books.map(b => `
-          <tr>
-            <td>${esc(b.title)}</td>
+          <tr class="${b.excluded ? 'excluded' : ''}">
+            <td>${esc(b.title)}${b.excluded ? ` <span class="tag">${EXCLUSION_LABEL[b.excluded] ?? b.excluded}</span>` : ''}</td>
             <td>${fmtOdd(b.home)}</td>
             <td>${fmtOdd(b.draw)}</td>
-            <td class="two${b.away <= threshold ? ' under' : ''}">${fmtOdd(b.away)}</td>
+            <td class="two${!b.excluded && b.away <= threshold ? ' under' : ''}">${fmtOdd(b.away)}</td>
           </tr>`).join('')}
       </tbody>
     </table>`;

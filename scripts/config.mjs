@@ -2,15 +2,18 @@
 // Tutti i valori possono essere sovrascritti da variabili d'ambiente
 // (utile per cambiare soglia o campionati senza toccare il codice).
 
+// Fuori da Node (browser, test) `process` non esiste: si cade sui default.
+const env = globalThis.process?.env ?? {};
+
 export const CONFIG = {
   // Soglia di alert: scatta quando la quota del "2" (squadra ospite) e' <= a questo valore.
-  threshold: Number(process.env.ODDS_THRESHOLD ?? 1.85),
+  threshold: Number(env.ODDS_THRESHOLD ?? 1.85),
 
   // Come valutare la soglia quando piu' bookmaker quotano la stessa partita:
   //   'any'     -> alert se ALMENO UN bookmaker e' <= soglia (lettura letterale, default)
   //   'best'    -> alert se anche la quota PIU' ALTA e' <= soglia (segnale piu' forte)
   //   'average' -> alert sulla media delle quote
-  alertMode: process.env.ALERT_MODE ?? 'any',
+  alertMode: env.ALERT_MODE ?? 'any',
 
   // Campionati monitorati. Le chiavi sono quelle di The Odds API.
   leagues: [
@@ -21,7 +24,7 @@ export const CONFIG = {
 
   // Regioni bookmaker. Ogni regione in piu' RADDOPPIA il consumo di crediti.
   // 'eu' -> Pinnacle, Betclic, Unibet IT/FR, Codere IT, Betsson, 1xBet, Winamax, William Hill...
-  regions: (process.env.ODDS_REGIONS ?? 'eu').split(',').map(s => s.trim()).filter(Boolean),
+  regions: (env.ODDS_REGIONS ?? 'eu').split(',').map(s => s.trim()).filter(Boolean),
 
   // Mercato 1X2 (in The Odds API si chiama 'h2h' e per il calcio include il pareggio).
   markets: 'h2h',
@@ -31,10 +34,19 @@ export const CONFIG = {
 
   // Opzionale: whitelist di bookmaker da mostrare/valutare (chiavi The Odds API).
   // Vuoto = tutti quelli restituiti. Es: 'pinnacle,unibet_it,betclic'
-  bookmakerFilter: (process.env.BOOKMAKERS ?? '').split(',').map(s => s.trim()).filter(Boolean),
+  bookmakerFilter: (env.BOOKMAKERS ?? '').split(',').map(s => s.trim()).filter(Boolean),
+
+  // Esclude gli exchange (Betfair, Matchbook, Smarkets...): non sono bookmaker
+  // e su partite lontane, senza liquidita', mostrano quote prive di senso.
+  excludeExchanges: (env.EXCLUDE_EXCHANGES ?? 'true') !== 'false',
+
+  // Scarta le quote troppo distanti dalla mediana del mercato (1.30 = ±30%).
+  // Serve a non far scattare un alert per un singolo bookmaker fuori linea.
+  // 0 disattiva il filtro.
+  maxDeviation: Number(env.MAX_DEVIATION ?? 1.30),
 
   // Ignora le partite che iniziano oltre N giorni da adesso (riduce rumore).
-  maxDaysAhead: Number(process.env.MAX_DAYS_AHEAD ?? 14),
+  maxDaysAhead: Number(env.MAX_DAYS_AHEAD ?? 14),
 
   // Percorsi di output.
   paths: {

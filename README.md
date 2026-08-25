@@ -104,7 +104,30 @@ Si cambia tutto da `scripts/config.mjs` o via variabili d'ambiente nel workflow.
 | `ALERT_MODE` | `any` | `any` = basta un bookmaker sotto soglia · `best` = anche la quota più alta è sotto soglia · `average` = media sotto soglia |
 | `ODDS_REGIONS` | `eu` | regioni bookmaker; **ogni regione in più raddoppia il consumo di crediti** |
 | `BOOKMAKERS` | *(vuoto)* | whitelist di bookmaker, es. `pinnacle,unibet_it,betclic` |
+| `EXCLUDE_EXCHANGES` | `true` | esclude Betfair, Matchbook, Smarkets dal calcolo — vedi sotto |
+| `MAX_DEVIATION` | `1.30` | scarta le quote oltre ±30% dalla mediana; `0` disattiva |
 | `MAX_DAYS_AHEAD` | `14` | ignora le partite oltre N giorni |
+
+### Perché gli exchange sono esclusi
+
+Non è una scelta di gusto: al primo giro con dati reali, su 12 partite segnalate
+**8 erano falsi allarmi**, tutti generati da Betfair. Esempi veri:
+
+```
+AS Roma - Atalanta   Betfair: 2 = 1.06   (gli altri 22 bookmaker: ~3.10)
+Genoa   - Como       Betfair: 1 = 1.10, X = 1.08, 2 = 1.32
+```
+
+Tre quote sotto 1.35 sulla stessa partita sono impossibili in un mercato vero: su
+partite lontane il book dell'exchange è vuoto e i prezzi esposti non hanno
+significato. Gli exchange non sono bookmaker — sono un mercato tra utenti, con
+commissioni e liquidità propri — e vanno tenuti fuori dal segnale.
+
+Il filtro `MAX_DEVIATION` copre il caso residuo: un singolo bookmaker fuori linea
+rispetto alla mediana del mercato non deve far scattare un alert da solo.
+
+I bookmaker esclusi **restano visibili nella pagina**, in grigio e con il motivo:
+sono utili da vedere, non da usare per decidere.
 
 **Cambiare frequenza:** modifica il `cron` in `.github/workflows/monitor.yml`.
 `0 */3 * * *` = ogni 3 ore (ricorda il costo in crediti).
@@ -149,7 +172,7 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-Aprire `tests/rules.test.html` **da un server HTTP** (i moduli ES non si caricano da
+24 test sulla logica della strategia. Aprire `tests/rules.test.html` **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 
 ```bash
