@@ -184,29 +184,6 @@
       "minAway": 1.65,
       "avgAway": 1.7181818181818178,
       "notifiedAt": "2026-08-25T21:08:59.461Z"
-    },
-    {
-      "id": "m3",
-      "league": "La Liga",
-      "home": "Getafe",
-      "away": "Real Madrid",
-      "commenceTime": "2026-08-30T19:30:00Z",
-      "notifiedAt": "2026-08-25T12:00:00Z",
-      "matchingBooks": [
-        {
-          "key": "pinnacle",
-          "title": "Pinnacle",
-          "away": 1.44
-        },
-        {
-          "key": "betclic",
-          "title": "Betclic",
-          "away": 1.48
-        }
-      ],
-      "bestAway": 1.48,
-      "minAway": 1.44,
-      "avgAway": 1.46
     }
   ]
 }

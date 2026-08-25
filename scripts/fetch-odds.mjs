@@ -23,9 +23,15 @@ async function readJson(path, fallback) {
   }
 }
 
-async function writeJson(path, value) {
+/**
+ * `pretty` solo per i file piccoli che ha senso leggere in un diff.
+ * odds.json viene riscritto per intero a ogni giro (4 volte al giorno): indentarlo
+ * aggiungerebbe ~100 KB per commit alla cronologia del repository, senza vantaggi.
+ */
+async function writeJson(path, value, { pretty = true } = {}) {
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, JSON.stringify(value, null, 2) + '\n', 'utf8');
+  const json = pretty ? JSON.stringify(value, null, 2) + '\n' : JSON.stringify(value);
+  await writeFile(path, json, 'utf8');
 }
 
 async function main() {
@@ -56,7 +62,7 @@ async function main() {
   data.alertMode = config.alertMode;
   data.triggeredCount = triggered.length;
 
-  await writeJson(config.paths.odds, data);
+  await writeJson(config.paths.odds, data, { pretty: false });
   await writeJson(config.paths.alerts, { updatedAt: new Date().toISOString(), items });
   await writeJson(config.paths.state, { updatedAt: new Date().toISOString(), active: nextActive });
 
