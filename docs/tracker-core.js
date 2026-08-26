@@ -1,0 +1,219 @@
+// Logica del tracker, senza DOM e senza storage: e' la parte che decide quando
+// una riga entra, resta o esce, e come si calcolano profitti e statistiche.
+// Tenuta separata da tracker.js apposta, cosi' e' testabile.
+
+export const SCHEMA_VERSION = 1;
+export const STORAGE_KEY = 'betbot.tracker.v1';
+
+export const RESULTS = { WIN: 'win', LOSE: 'lose', VOID: 'void' };
+
+const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+
+/** Una riga con dati inseriti da te non deve mai sparire da sola. */
+export function hasUserData(row) {
+  return Boolean(row.result) || num(row.stake) !== null || (row.notes ?? '').trim() !== '';
+}
+
+/** Una riga e' "bloccata" se l'hai fissata tu, se ha dati tuoi, o se e' storica. */
+export function isLocked(row) {
+  return Boolean(row.pinned) || Boolean(row.frozen) || hasUserData(row);
+}
+
+export function newRow(match, leagueLabel, { source = 'auto', now = new Date() } = {}) {
+  return {
+    id: match.id,
+    league: leagueLabel,
+    home: match.home,
+    away: match.away,
+    commenceTime: match.commenceTime,
+    source,
+    pinned: source === 'manual',
+    frozen: false,
+    // Quota proposta: la migliore disponibile al momento del segnale. Resta
+    // modificabile, perche' quella che conta e' quella che hai davvero ottenuto.
+    odds: num(match.awayStats?.max),
+    stake: null,
+    result: null,
+    notes: '',
+    signalOdds: num(match.awayStats?.min),
+    signalAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+  };
+}
+
+/**
+ * Allinea le righe ai segnali correnti.
+ *
+ * Regole:
+ *  - una riga bloccata (fissata, con tuoi dati, o storica) non viene mai rimossa;
+ *  - una riga automatica non bloccata segue i segnali: sparisce se la partita
+ *    non e' piu' sotto soglia, ricompare se ci rientra;
+ *  - al fischio d'inizio ogni riga viene congelata: da li' in poi e' storia, e
+ *    resta anche quando la partita sparisce dal feed delle quote.
+ *
+ * @returns {{rows: Array, added: Array, removed: Array, frozen: Array}}
+ */
+export function syncWithSignals(rows, data, now = new Date()) {
+  const t = now.getTime();
+  const signals = new Map();
+  for (const league of data?.leagues ?? []) {
+    for (const m of league.matches) {
+      if (m.triggered) signals.set(m.id, { match: m, league: league.label });
+    }
+  }
+
+  const out = [];
+  const added = [];
+  const removed = [];
+  const frozen = [];
+
+  for (const row of rows) {
+    const started = Date.parse(row.commenceTime) <= t;
+
+    if (started && !row.frozen) {
+      out.push({ ...row, frozen: true, updatedAt: now.toISOString() });
+      frozen.push(row);
+      continue;
+    }
+
+    if (isLocked(row)) {
+      // Finche' la partita e' ancora quotata si aggiorna il riferimento di
+      // mercato, senza toccare nulla di quello che hai inserito tu.
+      const live = signals.get(row.id);
+      out.push(live ? { ...row, signalOdds: num(live.match.awayStats?.min) ?? row.signalOdds } : row);
+      continue;
+    }
+
+    if (signals.has(row.id)) {
+      const live = signals.get(row.id);
+      out.push({
+        ...row,
+        odds: num(live.match.awayStats?.max) ?? row.odds,
+        signalOdds: num(live.match.awayStats?.min) ?? row.signalOdds,
+      });
+    } else {
+      removed.push(row);
+    }
+  }
+
+  const present = new Set(out.map(r => r.id));
+  for (const [id, { match, league }] of signals) {
+    if (present.has(id)) continue;
+    if (Date.parse(match.commenceTime) <= t) continue; // gia' iniziata: non la si aggiunge ora
+    const row = newRow(match, league, { now });
+    out.push(row);
+    added.push(row);
+  }
+
+  out.sort((a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime));
+  return { rows: out, added, removed, frozen };
+}
+
+/** Profitto o perdita in euro. null se la scommessa non e' ancora conclusa. */
+export function profitLoss(row) {
+  const stake = num(row.stake);
+  const odds = num(row.odds);
+  if (stake === null || !row.result) return null;
+  if (row.result === RESULTS.VOID) return 0;
+  if (row.result === RESULTS.LOSE) return -stake;
+  if (row.result === RESULTS.WIN) return odds === null ? null : stake * (odds - 1);
+  return null;
+}
+
+/** Una riga entra nelle statistiche solo se ci hai messo dei soldi. */
+export const isPlayed = row => (num(row.stake) ?? 0) > 0;
+
+export function summarize(rows) {
+  const played = rows.filter(isPlayed);
+  const settled = played.filter(r => r.result && profitLoss(r) !== null);
+
+  const stake = settled.reduce((s, r) => s + r.stake, 0);
+  const pl = settled.reduce((s, r) => s + profitLoss(r), 0);
+  const wins = settled.filter(r => r.result === RESULTS.WIN).length;
+  const losses = settled.filter(r => r.result === RESULTS.LOSE).length;
+  const voids = settled.filter(r => r.result === RESULTS.VOID).length;
+  const decided = wins + losses;
+
+  return {
+    totali: rows.length,
+    giocate: played.length,
+    concluse: settled.length,
+    inCorso: played.length - settled.length,
+    vinte: wins,
+    perse: losses,
+    annullate: voids,
+    stake,
+    profitLoss: pl,
+    roi: stake > 0 ? (pl / stake) * 100 : null,
+    winRate: decided > 0 ? (wins / decided) * 100 : null,
+    quotaMedia: settled.length
+      ? settled.reduce((s, r) => s + (num(r.odds) ?? 0), 0) / settled.length
+      : null,
+  };
+}
+
+/** Statistiche separate per campionato, per capire dove la strategia regge. */
+export function summarizeByLeague(rows) {
+  const byLeague = new Map();
+  for (const r of rows) {
+    if (!byLeague.has(r.league)) byLeague.set(r.league, []);
+    byLeague.get(r.league).push(r);
+  }
+  return [...byLeague.entries()]
+    .map(([league, rs]) => ({ league, ...summarize(rs) }))
+    .filter(s => s.giocate > 0)
+    // I campionati senza scommesse concluse vanno in fondo: il loro profitto e'
+    // zero solo perche' non si sa ancora, e non deve superare uno in perdita.
+    .sort((a, b) => (b.concluse > 0) - (a.concluse > 0) || b.profitLoss - a.profitLoss);
+}
+
+const CSV_HEADERS = ['Data', 'Campionato', 'Partita', 'Esito', 'Quota', 'Stake', 'Profit/Loss', 'Note'];
+const RESULT_LABEL = { win: 'Vinta', lose: 'Persa', void: 'Annullata' };
+
+function csvCell(v) {
+  const s = v == null ? '' : String(v);
+  return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+/**
+ * Export per Excel. Separatore `;` e virgola decimale: e' quello che si apre
+ * con un doppio clic su un Excel con impostazioni italiane, senza procedura
+ * di importazione.
+ */
+export function toCsv(rows) {
+  const dec = n => (n == null ? '' : String(n).replace('.', ','));
+  const lines = [CSV_HEADERS.join(';')];
+  for (const r of rows) {
+    const pl = profitLoss(r);
+    lines.push([
+      new Date(r.commenceTime).toLocaleDateString('it-IT'),
+      r.league,
+      r.home + ' - ' + r.away,
+      RESULT_LABEL[r.result] ?? '',
+      dec(num(r.odds)),
+      dec(num(r.stake)),
+      dec(pl === null ? null : Math.round(pl * 100) / 100),
+      r.notes ?? '',
+    ].map(csvCell).join(';'));
+  }
+  return lines.join('\r\n');
+}
+
+/** Valida un backup prima di sovrascrivere quello che c'e' gia'. */
+export function parseBackup(text) {
+  const parsed = JSON.parse(text);
+  const rows = Array.isArray(parsed) ? parsed : parsed?.rows;
+  if (!Array.isArray(rows)) throw new Error('Il file non contiene un elenco di partite.');
+  return rows.map(r => {
+    if (!r || typeof r.id !== 'string' || typeof r.home !== 'string' || typeof r.away !== 'string') {
+      throw new Error('Riga non valida nel backup: manca id, home o away.');
+    }
+    return {
+      ...r,
+      odds: num(r.odds),
+      stake: num(r.stake),
+      notes: typeof r.notes === 'string' ? r.notes : '',
+      result: [RESULTS.WIN, RESULTS.LOSE, RESULTS.VOID].includes(r.result) ? r.result : null,
+    };
+  });
+}

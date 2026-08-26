@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracker — Storico reale della strategia</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <h1>Tracker <span class="sub">storico reale delle giocate</span></h1>
+  </div>
+  <nav class="pages">
+    <a href="index.html">Segnali</a>
+    <a href="tracker.html" aria-current="page">Tracker</a>
+  </nav>
+</header>
+
+<section class="stats" id="stats"></section>
+
+<nav class="controls">
+  <div class="filters" id="leagueFilters"></div>
+  <label class="toggle"><input type="checkbox" id="onlyPlayed"><span>Solo giocate</span></label>
+  <label class="toggle"><input type="checkbox" id="hideSettled"><span>Nascondi concluse</span></label>
+  <span class="spacer"></span>
+  <button class="btn" id="addManual">+ Aggiungi partita</button>
+  <button class="btn" id="exportCsv">Esporta CSV</button>
+  <button class="btn" id="exportJson">Backup</button>
+  <button class="btn" id="importJson">Ripristina</button>
+  <input type="file" id="importFile" accept="application/json,.json" hidden>
+</nav>
+
+<main id="content"><p class="loading">Caricamento…</p></main>
+
+<section class="stats-league" id="byLeague" hidden>
+  <h2>Per campionato</h2>
+  <div id="byLeagueBody"></div>
+</section>
+
+<footer>
+  <p><b>I dati restano in questo browser</b> e non vengono mai inviati da nessuna parte —
+  il repository è pubblico, il tuo storico no. Svuotare i dati del sito li cancella:
+  usa <b>Backup</b> ogni tanto.</p>
+  <p id="storageNote" class="errors" hidden></p>
+</footer>
+
+<dialog id="manualDialog">
+  <form method="dialog" id="manualForm">
+    <h2>Aggiungi una partita</h2>
+    <label>Campionato
+      <select name="league" required>
+        <option>Serie A</option><option>La Liga</option><option>Ligue 1</option>
+      </select>
+    </label>
+    <label>Squadra di casa <input name="home" required maxlength="60" placeholder="Lecce"></label>
+    <label>Squadra ospite <input name="away" required maxlength="60" placeholder="Inter"></label>
+    <label>Data e ora <input name="commenceTime" type="datetime-local" required></label>
+    <menu>
+      <button value="cancel" formnovalidate>Annulla</button>
+      <button value="ok" class="primary">Aggiungi</button>
+    </menu>
+  </form>
+</dialog>
+
+<script type="module" src="tracker.js"></script>
+</body>
+</html>

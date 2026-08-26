@@ -1,0 +1,279 @@
+<!doctype html><meta charset="utf-8"><title>test tracker</title><body><pre id="out">running…</pre>
+<script type="module">
+import {
+  syncWithSignals, profitLoss, summarize, summarizeByLeague,
+  hasUserData, isLocked, isPlayed, toCsv, parseBackup, newRow, RESULTS,
+} from '../docs/tracker-core.js';
+
+const log = [];
+let fails = 0;
+function t(name, fn) {
+  try { fn(); log.push('PASS  ' + name); }
+  catch (e) { fails++; log.push('FAIL  ' + name + '\n        ' + e.message); }
+}
+function eq(a, b, msg) {
+  const A = JSON.stringify(a), B = JSON.stringify(b);
+  if (A !== B) throw new Error((msg ?? '') + ' atteso ' + B + ', ottenuto ' + A);
+}
+function ok(v, msg) { if (!v) throw new Error(msg ?? 'atteso true'); }
+function close(a, b, msg) {
+  if (Math.abs(a - b) > 1e-9) throw new Error((msg ?? '') + ' atteso ' + b + ', ottenuto ' + a);
+}
+
+const NOW = new Date('2026-08-26T12:00:00Z');
+const FUTURO = '2026-08-30T18:45:00Z';
+const PASSATO = '2026-08-25T18:45:00Z';
+
+const match = (id, home, away, when = FUTURO, min = 1.60, max = 1.75) => ({
+  id, home, away, commenceTime: when, triggered: true,
+  awayStats: { min, max, avg: (min + max) / 2, count: 20 },
+});
+const feed = (...matches) => ({ leagues: [{ key: 'k', label: 'Serie A', matches }] });
+const vuoto = { leagues: [{ key: 'k', label: 'Serie A', matches: [] }] };
+
+// --- ingresso e uscita automatica -------------------------------------------
+
+t('un segnale nuovo entra da solo nel tracker', () => {
+  const { rows, added } = syncWithSignals([], feed(match('1', 'Cagliari', 'Inter')), NOW);
+  eq(rows.length, 1);
+  eq(added.length, 1);
+  eq(rows[0].away, 'Inter');
+  eq(rows[0].source, 'auto');
+  eq(rows[0].pinned, false);
+});
+
+t('la quota proposta e la migliore del mercato, il riferimento e la minima', () => {
+  const { rows } = syncWithSignals([], feed(match('1', 'A', 'B', FUTURO, 1.60, 1.75)), NOW);
+  eq(rows[0].odds, 1.75, 'quota giocabile:');
+  eq(rows[0].signalOdds, 1.60, 'quota del segnale:');
+});
+
+t('una riga automatica esce se la partita non e piu sotto soglia', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  const { rows: r2, removed } = syncWithSignals(r1, vuoto, NOW);
+  eq(r2.length, 0);
+  eq(removed.length, 1);
+});
+
+t('e rientra se la quota ci ridiscende', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  const { rows: r2 } = syncWithSignals(r1, vuoto, NOW);
+  const { rows: r3, added } = syncWithSignals(r2, feed(match('1', 'A', 'B')), NOW);
+  eq(r3.length, 1);
+  eq(added.length, 1);
+});
+
+t('la quota di una riga automatica si aggiorna al variare del mercato', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B', FUTURO, 1.60, 1.75)), NOW);
+  const { rows: r2 } = syncWithSignals(r1, feed(match('1', 'A', 'B', FUTURO, 1.40, 1.52)), NOW);
+  eq(r2[0].odds, 1.52);
+  eq(r2[0].signalOdds, 1.40);
+});
+
+// --- il pin, cioe' "finche' non la fisso io" ---------------------------------
+
+t('una riga fissata resta anche quando il segnale sparisce', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  r1[0].pinned = true;
+  const { rows: r2, removed } = syncWithSignals(r1, vuoto, NOW);
+  eq(r2.length, 1);
+  eq(removed.length, 0);
+});
+
+t('su una riga fissata il mercato non tocca la quota che hai inserito', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B', FUTURO, 1.60, 1.75)), NOW);
+  r1[0].pinned = true;
+  r1[0].odds = 1.90; // quota davvero ottenuta dal bookmaker
+  const { rows: r2 } = syncWithSignals(r1, feed(match('1', 'A', 'B', FUTURO, 1.30, 1.35)), NOW);
+  eq(r2[0].odds, 1.90, 'la quota inserita non va sovrascritta:');
+  eq(r2[0].signalOdds, 1.30, 'il riferimento di mercato invece si aggiorna:');
+});
+
+t('uno stake inserito blocca la riga anche senza fissarla', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  r1[0].stake = 10;
+  const { rows: r2 } = syncWithSignals(r1, vuoto, NOW);
+  eq(r2.length, 1, 'una riga con soldi dentro non deve sparire:');
+});
+
+t('anche un esito o una nota bloccano la riga', () => {
+  const base = () => syncWithSignals([], feed(match('1', 'A', 'B')), NOW).rows;
+  const conEsito = base(); conEsito[0].result = RESULTS.WIN;
+  eq(syncWithSignals(conEsito, vuoto, NOW).rows.length, 1, 'esito:');
+  const conNota = base(); conNota[0].notes = 'giocata al bar';
+  eq(syncWithSignals(conNota, vuoto, NOW).rows.length, 1, 'nota:');
+});
+
+t('note fatte di soli spazi non contano come dato', () => {
+  eq(hasUserData({ notes: '   ' }), false);
+  eq(hasUserData({ notes: 'x' }), true);
+  eq(hasUserData({ stake: 0 }), true, 'stake 0 e comunque un dato inserito:');
+  eq(hasUserData({}), false);
+});
+
+t('isLocked copre pin, dati e congelamento', () => {
+  eq(isLocked({ pinned: true }), true);
+  eq(isLocked({ frozen: true }), true);
+  eq(isLocked({ stake: 5 }), true);
+  eq(isLocked({ pinned: false, notes: '' }), false);
+});
+
+// --- congelamento al fischio d'inizio ----------------------------------------
+
+t('al fischio d inizio la riga si congela e diventa storia', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B', FUTURO)), NOW);
+  const dopo = new Date('2026-08-30T21:00:00Z');
+  const { rows: r2, frozen } = syncWithSignals(r1, vuoto, dopo);
+  eq(r2.length, 1, 'non deve sparire:');
+  eq(r2[0].frozen, true);
+  eq(frozen.length, 1);
+});
+
+t('una riga congelata non viene piu rimossa ne modificata dal mercato', () => {
+  const congelata = { ...newRow(match('1', 'A', 'B', PASSATO), 'Serie A', { now: NOW }), frozen: true, odds: 1.9 };
+  const { rows } = syncWithSignals([congelata], feed(match('1', 'A', 'B', PASSATO, 1.2, 1.3)), NOW);
+  eq(rows.length, 1);
+  eq(rows[0].odds, 1.9);
+});
+
+t('una partita gia iniziata non viene aggiunta da zero', () => {
+  const { rows, added } = syncWithSignals([], feed(match('1', 'A', 'B', PASSATO)), NOW);
+  eq(rows.length, 0);
+  eq(added.length, 0);
+});
+
+t('le righe restano ordinate per data di inizio', () => {
+  const { rows } = syncWithSignals([], feed(
+    match('2', 'C', 'D', '2026-09-02T18:00:00Z'),
+    match('1', 'A', 'B', '2026-08-28T18:00:00Z'),
+    match('3', 'E', 'F', '2026-08-31T18:00:00Z'),
+  ), NOW);
+  eq(rows.map(r => r.id), ['1', '3', '2']);
+});
+
+t('le righe manuali non vengono mai rimosse dal sync', () => {
+  const manuale = newRow({ id: 'man_1', home: 'A', away: 'B', commenceTime: FUTURO }, 'La Liga', { source: 'manual', now: NOW });
+  eq(manuale.pinned, true, 'una riga manuale nasce fissata:');
+  const { rows } = syncWithSignals([manuale], vuoto, NOW);
+  eq(rows.length, 1);
+});
+
+// --- profitti ----------------------------------------------------------------
+
+t('vincita: si guadagna lo stake per quota meno uno', () => {
+  close(profitLoss({ stake: 10, odds: 1.75, result: RESULTS.WIN }), 7.5);
+  close(profitLoss({ stake: 25, odds: 1.40, result: RESULTS.WIN }), 10);
+});
+
+t('sconfitta: si perde lo stake', () => {
+  eq(profitLoss({ stake: 10, odds: 1.75, result: RESULTS.LOSE }), -10);
+});
+
+t('annullata: non si perde ne si guadagna', () => {
+  eq(profitLoss({ stake: 10, odds: 1.75, result: RESULTS.VOID }), 0);
+});
+
+t('senza esito o senza stake il profitto non esiste ancora', () => {
+  eq(profitLoss({ stake: 10, odds: 1.75, result: null }), null);
+  eq(profitLoss({ stake: null, odds: 1.75, result: RESULTS.WIN }), null);
+  eq(profitLoss({ stake: 10, odds: null, result: RESULTS.WIN }), null, 'vincita senza quota:');
+});
+
+t('una perdita si calcola anche senza quota registrata', () => {
+  eq(profitLoss({ stake: 10, odds: null, result: RESULTS.LOSE }), -10);
+});
+
+// --- statistiche -------------------------------------------------------------
+
+const registro = [
+  { id: '1', league: 'Serie A', stake: 10, odds: 1.75, result: RESULTS.WIN },   // +7.50
+  { id: '2', league: 'Serie A', stake: 10, odds: 1.60, result: RESULTS.LOSE },  // -10
+  { id: '3', league: 'Ligue 1', stake: 20, odds: 1.50, result: RESULTS.WIN },   // +10
+  { id: '4', league: 'Ligue 1', stake: 10, odds: 1.80, result: RESULTS.VOID },  //   0
+  { id: '5', league: 'La Liga', stake: 10, odds: 1.70, result: null },          // in corso
+  { id: '6', league: 'La Liga', stake: null, odds: 1.70, result: null },        // non giocata
+];
+
+t('il riepilogo conta solo le scommesse concluse', () => {
+  const s = summarize(registro);
+  eq(s.totali, 6);
+  eq(s.giocate, 5, 'giocate = con stake:');
+  eq(s.concluse, 4);
+  eq(s.inCorso, 1);
+  eq(s.vinte, 2); eq(s.perse, 1); eq(s.annullate, 1);
+  close(s.profitLoss, 7.5);
+  close(s.stake, 50);
+  close(s.roi, 15);
+});
+
+t('il win rate ignora le annullate', () => {
+  // 2 vinte, 1 persa, 1 annullata -> 2/3
+  close(summarize(registro).winRate, (2 / 3) * 100);
+});
+
+t('un registro vuoto non produce divisioni per zero', () => {
+  const s = summarize([]);
+  eq(s.profitLoss, 0); eq(s.roi, null); eq(s.winRate, null); eq(s.quotaMedia, null);
+});
+
+t('le partite senza stake non entrano nelle statistiche', () => {
+  eq(isPlayed({ stake: 10 }), true);
+  eq(isPlayed({ stake: 0 }), false);
+  eq(isPlayed({ stake: null }), false);
+});
+
+t('il riepilogo per campionato separa i tre campionati', () => {
+  const per = summarizeByLeague(registro);
+  eq(per.map(s => s.league), ['Ligue 1', 'Serie A', 'La Liga'],
+    'ordinati per profitto, con i campionati senza esiti in fondo:');
+  close(per.find(s => s.league === 'Serie A').profitLoss, -2.5);
+  close(per.find(s => s.league === 'Ligue 1').profitLoss, 10);
+});
+
+// --- export e backup ---------------------------------------------------------
+
+t('il CSV usa punto e virgola e virgola decimale, per Excel italiano', () => {
+  const csv = toCsv([{ ...registro[0], home: 'Cagliari', away: 'Inter', commenceTime: FUTURO, notes: '' }]);
+  const [head, riga] = csv.split('\r\n');
+  eq(head.split(';')[0], 'Data');
+  ok(riga.includes('Cagliari - Inter'), 'manca la partita: ' + riga);
+  ok(riga.includes('1,75'), 'la quota deve avere la virgola: ' + riga);
+  ok(riga.includes('7,5'), 'manca il profitto: ' + riga);
+  ok(riga.includes('Vinta'), 'manca l esito: ' + riga);
+});
+
+t('le note con punto e virgola non spezzano il CSV', () => {
+  const csv = toCsv([{ ...registro[0], home: 'A', away: 'B', commenceTime: FUTURO, notes: 'primo; secondo "x"' }]);
+  const riga = csv.split('\r\n')[1];
+  ok(riga.includes('"primo; secondo ""x"""'), 'note non protette: ' + riga);
+});
+
+t('il backup si rilegge e conserva i dati', () => {
+  const originale = syncWithSignals([], feed(match('1', 'A', 'B')), NOW).rows;
+  originale[0].stake = 15; originale[0].result = RESULTS.WIN; originale[0].notes = 'ok';
+  const riletto = parseBackup(JSON.stringify({ rows: originale }));
+  eq(riletto[0].stake, 15);
+  eq(riletto[0].result, RESULTS.WIN);
+  eq(riletto[0].notes, 'ok');
+});
+
+t('il backup accetta anche un elenco semplice', () => {
+  eq(parseBackup(JSON.stringify([{ id: '1', home: 'A', away: 'B' }])).length, 1);
+});
+
+t('un backup malformato viene rifiutato invece di corrompere lo storico', () => {
+  let errori = 0;
+  for (const cattivo of ['{}', '"stringa"', '[{"id":1}]', '[{"home":"A"}]', 'non json']) {
+    try { parseBackup(cattivo); } catch { errori++; }
+  }
+  eq(errori, 5, 'tutti e cinque devono essere rifiutati:');
+});
+
+t('un esito non riconosciuto nel backup viene azzerato, non importato', () => {
+  const r = parseBackup(JSON.stringify([{ id: '1', home: 'A', away: 'B', result: 'boh' }]));
+  eq(r[0].result, null);
+});
+
+document.getElementById('out').textContent =
+  log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
+</script>

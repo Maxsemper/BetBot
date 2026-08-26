@@ -146,3 +146,112 @@ footer p { margin: 4px 0; }
 .spark { color: var(--muted); flex: none; }
 .spark.down { color: var(--hit); }
 .spark.up   { color: var(--danger); }
+
+/* ---------- Navigazione fra le pagine ---------- */
+.pages { display: flex; gap: 4px; }
+.pages a {
+  color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500;
+  padding: 6px 14px; border-radius: 8px; border: 1px solid transparent;
+}
+.pages a:hover { color: var(--text); background: var(--panel-2); }
+.pages a[aria-current="page"] {
+  color: var(--text); background: var(--panel-2); border-color: var(--line);
+}
+
+/* ---------- Tracker ---------- */
+.controls .spacer { flex: 1 1 auto; }
+.btn {
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+  padding: 6px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+
+.stats {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  padding: 16px 20px; border-bottom: 1px solid var(--line);
+}
+.stat {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);
+  padding: 10px 14px; min-width: 108px;
+}
+.stat .k { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.stat .v { display: block; font-size: 18px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.stat.big .v { font-size: 26px; }
+.pos { color: var(--hit); }
+.neg { color: var(--danger); }
+
+.grid { width: 100%; border-collapse: collapse; font-size: 14px; }
+.grid th {
+  text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; background: var(--bg); z-index: 1;
+}
+.grid td { padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.grid .c-num, .grid th.c-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.tracker .c-pin, .tracker .c-del { width: 34px; text-align: center; padding: 6px 2px; }
+.tracker .c-when { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.tracker .c-num { width: 96px; }
+.tracker .c-result { width: 116px; }
+.tracker .c-notes { min-width: 160px; }
+.tracker .lg {
+  display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); border: 1px solid var(--line); border-radius: 4px;
+  padding: 1px 5px; margin-right: 6px; vertical-align: 1px;
+}
+.tracker .hint { color: var(--muted); font-size: 11px; margin-left: 6px; }
+.tracker .pl { font-weight: 650; }
+.tracker tr.pos-row .pl { color: var(--hit); }
+.tracker tr.neg-row .pl { color: var(--danger); }
+.tracker tr.settled { background: color-mix(in srgb, var(--panel-2) 60%, transparent); }
+.tracker tr.frozen .c-when { color: var(--text); }
+
+.tracker input, .tracker select {
+  width: 100%; background: var(--panel); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px;
+  font: inherit; font-size: 13px;
+}
+.tracker .c-num input { text-align: right; }
+.tracker input:focus, .tracker select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+.tracker .pin, .tracker .del {
+  background: none; border: none; cursor: pointer; font-size: 14px;
+  color: var(--muted); padding: 4px; border-radius: 6px; line-height: 1;
+}
+.tracker .pin:hover, .tracker .del:hover { background: var(--panel-2); color: var(--text); }
+.tracker .pin.on { color: var(--accent); }
+.tracker .pin:disabled { cursor: default; opacity: .55; }
+
+.stats-league { padding: 8px 20px 32px; max-width: 1200px; }
+.stats-league h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+
+dialog {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--panel); color: var(--text); padding: 20px; min-width: 300px;
+}
+dialog::backdrop { background: rgba(0,0,0,.5); }
+dialog h2 { margin: 0 0 14px; font-size: 16px; }
+dialog label { display: block; margin-bottom: 10px; font-size: 13px; color: var(--muted); }
+dialog input, dialog select {
+  display: block; width: 100%; margin-top: 4px; font: inherit;
+  background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px;
+}
+dialog menu { display: flex; gap: 8px; justify-content: flex-end; padding: 0; margin: 16px 0 0; }
+dialog button {
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+  padding: 7px 14px; border-radius: 8px; font: inherit; cursor: pointer;
+}
+dialog button.primary { background: var(--accent); border-color: var(--accent); color: #041; font-weight: 600; }
+
+@media (max-width: 820px) {
+  /* Le colonne non si nascondono: su un tracker di scommesse Data e Note
+     servono anche da telefono. La tabella scorre in orizzontale. */
+  .stat { flex: 1 1 calc(50% - 10px); min-width: 0; }
+}
+
+/* La tabella scorre dentro il suo contenitore: la pagina non deve mai
+   scorrere in orizzontale, e nessuna colonna va nascosta su schermo stretto. */
+.table-wrap { overflow-x: auto; }
+.table-wrap .tracker { min-width: 780px; }
+.table-wrap .by-league { min-width: 460px; }

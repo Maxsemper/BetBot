@@ -1,4 +1,4 @@
-# Monitor Quote — Serie A / La Liga / Ligue 1
+# BetBot — Monitor quote e tracker, Serie A / La Liga / Ligue 1
 
 Monitora le quote **1X2** dei tre campionati e avvisa su **Telegram** quando la quota
 della **squadra ospite (il "2")** scende a **≤ 1.85**.
@@ -81,9 +81,10 @@ scripts/rules.mjs               la logica della strategia (pura, testabile)
 scripts/history.mjs             storico per partita e calcolo salita/discesa
 scripts/alerts/telegram.mjs     costruzione e invio del messaggio
 scripts/fetch-odds.mjs          orchestratore
-docs/                           la pagina web (GitHub Pages)
+docs/index.html                 pagina Segnali: partite e quote sotto soglia
+docs/tracker.html + tracker*.js pagina Tracker: registro reale delle giocate
 docs/data/*.json                output del job: quote, storico alert, stato dedup
-tests/rules.test.html           test della logica, si aprono nel browser
+tests/*.test.html               test della logica, si aprono nel browser
 ```
 
 Ogni giro: scarica le quote → calcola min/max/media del "2" per ogni partita →
@@ -177,6 +178,57 @@ ci sia un termine di paragone.
 
 ---
 
+## Tracker
+
+Seconda pagina (`tracker.html`): il registro reale delle giocate, con cui costruire
+lo storico dell'andamento della strategia. Per ogni riga: partita, esito
+(vinta / persa / annullata), quota, stake, profit/loss in euro calcolato, note.
+In cima il riepilogo — P/L, ROI, win rate, stake totale, quota media — e sotto lo
+stesso riepilogo diviso per campionato.
+
+### Come entrano ed escono le partite
+
+Le partite sotto soglia entrano **da sole**, e finché non le tocchi restano libere
+di uscire: se la quota risale sopra 1.85 la riga sparisce, se ci ridiscende torna.
+
+Una riga si **blocca** — e non si muove più — in tre casi:
+
+| | |
+| --- | --- |
+| 📌 la fissi tu | col pulsante nella prima colonna |
+| dati inseriti | appena scrivi stake, esito o una nota, la riga si fissa da sola |
+| 🔒 partita iniziata | al fischio d'inizio diventa storia e resta per sempre |
+
+Il secondo caso è la garanzia che conta: **una riga in cui hai messo dei soldi non
+può sparire perché il mercato si è mosso.**
+
+Su una riga bloccata la quota che hai inserito non viene mai sovrascritta — è quella
+che hai davvero ottenuto dal bookmaker, e può differire da qualsiasi quota del feed.
+Il riferimento di mercato (`segnale 1.46`) continua invece ad aggiornarsi, così vedi
+se hai preso una quota migliore o peggiore del mercato.
+
+Puoi aggiungere partite a mano con **+ Aggiungi partita**, anche di campionati o
+incontri che il monitor non ha segnalato.
+
+### Dove finiscono i dati
+
+**Nel tuo browser, e da nessun'altra parte.** Il repository è pubblico: stake e
+profitti non devono finirci, quindi il tracker usa `localStorage` e non invia nulla
+a GitHub né altrove.
+
+Il rovescio della medaglia: **svuotare i dati del sito cancella lo storico**, e i dati
+non si sincronizzano tra PC e telefono. Per questo ci sono:
+
+- **Backup** — scarica un JSON con tutto; **Ripristina** lo rilegge (validandolo:
+  un file malformato viene rifiutato invece di corrompere lo storico).
+- **Esporta CSV** — per Excel, con `;` e virgola decimale, così si apre con un doppio
+  clic senza procedura di importazione.
+
+Se un giorno vorrai lo storico sincronizzato tra dispositivi, servirà un repository
+privato o un backend: non si può fare restando su una pagina statica pubblica.
+
+---
+
 ## Cambiare sorgente quote
 
 1. Crea `scripts/providers/mio-feed.mjs` che esporta `NAME` e
@@ -211,14 +263,16 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-37 test sulla logica della strategia. Aprire `tests/rules.test.html` **da un server HTTP** (i moduli ES non si caricano da
+69 test in tutto: `tests/rules.test.html` (37, segnale e tendenza) e
+`tests/tracker.test.html` (32, tracker). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 
 ```bash
 powershell -NoProfile -Command "$l=[Net.HttpListener]::new();$l.Prefixes.Add('http://localhost:8080/');$l.Start();Write-Host 'http://localhost:8080/tests/rules.test.html';while($l.IsListening){$c=$l.GetContext();$p=Join-Path (Get-Location) $c.Request.Url.AbsolutePath.TrimStart('/');if(Test-Path -LiteralPath $p -PathType Leaf){$b=[IO.File]::ReadAllBytes($p);$e=[IO.Path]::GetExtension($p);$c.Response.ContentType=@{'.html'='text/html';'.js'='text/javascript';'.mjs'='text/javascript';'.css'='text/css';'.json'='application/json'}[$e];$c.Response.OutputStream.Write($b,0,$b.Length)}else{$c.Response.StatusCode=404};$c.Response.Close()}"
 ```
 
-Poi apri <http://localhost:8080/tests/rules.test.html> (la pagina in
+Poi apri <http://localhost:8080/tests/rules.test.html> e
+<http://localhost:8080/tests/tracker.test.html> (le pagine sono in
 <http://localhost:8080/docs/>).
 
 ---
