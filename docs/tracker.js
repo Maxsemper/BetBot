@@ -252,7 +252,7 @@ function renderRow(row) {
       <span class="lg">${esc(row.league)}</span>
       ${esc(row.home)} – <b>${esc(row.away)}</b>
       ${row.score ? `<span class="score" title="${esc(SCORE_TITLE[row.score.status] ?? 'Risultato finale')}">${row.score.home}–${row.score.away}</span>` : ''}
-      ${row.signalOdds ? `<span class="hint" title="Quota minima di mercato al momento del segnale">segnale ${row.signalOdds.toFixed(2)}</span>` : ''}
+      ${row.signalOdds ? `<span class="hint" title="Quota media dei bookmaker al momento del segnale. Confrontala con la tua quota per vedere se hai preso meglio o peggio del mercato.">segnale ${row.signalOdds.toFixed(2)}</span>` : ''}
       ${row.source === 'manual' ? '<span class="hint">manuale</span>' : ''}
     </td>
     <td class="c-when">${esc(fmtDate(row.commenceTime))}</td>

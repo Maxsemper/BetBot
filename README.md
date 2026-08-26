@@ -208,8 +208,20 @@ può sparire perché il mercato si è mosso.**
 
 Su una riga bloccata la quota che hai inserito non viene mai sovrascritta — è quella
 che hai davvero ottenuto dal bookmaker, e può differire da qualsiasi quota del feed.
-Il riferimento di mercato (`segnale 1.46`) continua invece ad aggiornarsi, così vedi
+Il riferimento di mercato (`segnale 1.51`) continua invece ad aggiornarsi, così vedi
 se hai preso una quota migliore o peggiore del mercato.
+
+Le due quote su ogni riga rispondono a domande diverse:
+
+| | |
+| --- | --- |
+| **Quota** (modificabile) | parte dalla **migliore** disponibile sul mercato: è quella che potresti spuntare, e va poi corretta con quella che hai davvero ottenuto |
+| **`segnale`** | la **media** dei bookmaker al momento del segnale: come prezzava il mercato nel suo complesso, il metro con cui giudicare se hai preso bene |
+
+Il riferimento è la media e non il minimo perché il minimo dipende da quale singolo
+bookmaker era più basso in quel momento: salta da un giro all'altro anche a mercato
+fermo, ed è un termine di paragone poco solido. È la stessa ragione per cui la
+[tendenza della quota](#tendenza-della-quota) usa la media.
 
 Puoi aggiungere partite a mano con **+ Aggiungi partita**, anche di campionati o
 incontri che il monitor non ha segnalato.

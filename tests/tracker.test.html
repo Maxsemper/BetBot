@@ -43,10 +43,10 @@ t('un segnale nuovo entra da solo nel tracker', () => {
   eq(rows[0].pinned, false);
 });
 
-t('la quota proposta e la migliore del mercato, il riferimento e la minima', () => {
+t('la quota proposta e la migliore del mercato, il riferimento e la media', () => {
   const { rows } = syncWithSignals([], feed(match('1', 'A', 'B', FUTURO, 1.60, 1.75)), NOW);
-  eq(rows[0].odds, 1.75, 'quota giocabile:');
-  eq(rows[0].signalOdds, 1.60, 'quota del segnale:');
+  eq(rows[0].odds, 1.75, 'quota giocabile = la migliore:');
+  eq(rows[0].signalOdds, 1.675, 'riferimento = media dei bookmaker, non il minimo:');
 });
 
 t('una riga automatica esce se la partita non e piu sotto soglia', () => {
@@ -68,7 +68,7 @@ t('la quota di una riga automatica si aggiorna al variare del mercato', () => {
   const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B', FUTURO, 1.60, 1.75)), NOW);
   const { rows: r2 } = syncWithSignals(r1, feed(match('1', 'A', 'B', FUTURO, 1.40, 1.52)), NOW);
   eq(r2[0].odds, 1.52);
-  eq(r2[0].signalOdds, 1.40);
+  eq(r2[0].signalOdds, 1.46, 'media di 1.40 e 1.52:');
 });
 
 // --- il pin, cioe' "finche' non la fisso io" ---------------------------------
@@ -87,7 +87,7 @@ t('su una riga fissata il mercato non tocca la quota che hai inserito', () => {
   r1[0].odds = 1.90; // quota davvero ottenuta dal bookmaker
   const { rows: r2 } = syncWithSignals(r1, feed(match('1', 'A', 'B', FUTURO, 1.30, 1.35)), NOW);
   eq(r2[0].odds, 1.90, 'la quota inserita non va sovrascritta:');
-  eq(r2[0].signalOdds, 1.30, 'il riferimento di mercato invece si aggiorna:');
+  eq(r2[0].signalOdds, 1.325, 'il riferimento di mercato invece si aggiorna:');
 });
 
 t('uno stake inserito blocca la riga anche senza fissarla', () => {

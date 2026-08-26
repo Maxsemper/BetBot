@@ -9,6 +9,10 @@ export const RESULTS = { WIN: 'win', LOSE: 'lose', VOID: 'void' };
 
 const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
+// La media dei bookmaker ha molti decimali: si arrotonda per non salvare code
+// inutili in localStorage e nei backup.
+const round3 = v => (v === null ? null : Math.round(v * 1000) / 1000);
+
 /** Una riga con dati inseriti da te non deve mai sparire da sola. */
 export function hasUserData(row) {
   return Boolean(row.result) || num(row.stake) !== null
@@ -38,7 +42,11 @@ export function newRow(match, leagueLabel, { source = 'auto', now = new Date() }
     // Profitto corretto a mano: quando c'e', sostituisce il calcolo. Vedi profitLoss().
     plOverride: null,
     notes: '',
-    signalOdds: num(match.awayStats?.min),
+    // Riferimento di mercato: la quota MEDIA dei bookmaker al momento del
+    // segnale. La media dice come prezzava il mercato nel suo complesso; il
+    // minimo dipendeva da quale singolo bookmaker era piu' basso in quel
+    // momento, ed era un termine di paragone poco solido.
+    signalOdds: round3(num(match.awayStats?.avg)),
     signalAt: now.toISOString(),
     updatedAt: now.toISOString(),
   };
@@ -83,7 +91,7 @@ export function syncWithSignals(rows, data, now = new Date()) {
       // Finche' la partita e' ancora quotata si aggiorna il riferimento di
       // mercato, senza toccare nulla di quello che hai inserito tu.
       const live = signals.get(row.id);
-      out.push(live ? { ...row, signalOdds: num(live.match.awayStats?.min) ?? row.signalOdds } : row);
+      out.push(live ? { ...row, signalOdds: round3(num(live.match.awayStats?.avg)) ?? row.signalOdds } : row);
       continue;
     }
 
@@ -92,7 +100,7 @@ export function syncWithSignals(rows, data, now = new Date()) {
       out.push({
         ...row,
         odds: num(live.match.awayStats?.max) ?? row.odds,
-        signalOdds: num(live.match.awayStats?.min) ?? row.signalOdds,
+        signalOdds: round3(num(live.match.awayStats?.avg)) ?? row.signalOdds,
       });
     } else {
       removed.push(row);
