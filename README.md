@@ -185,7 +185,8 @@ ci sia un termine di paragone.
 
 Seconda pagina (`tracker.html`): il registro reale delle giocate, con cui costruire
 lo storico dell'andamento della strategia. Per ogni riga: partita, esito
-(vinta / persa / annullata), quota, stake, profit/loss in euro calcolato, note.
+(vinta / persa / annullata), quota, stake, profit/loss in euro (calcolato ma
+correggibile a mano), note.
 In cima il riepilogo — P/L, ROI, win rate, stake totale, quota media — e sotto lo
 stesso riepilogo diviso per campionato.
 
@@ -212,6 +213,27 @@ se hai preso una quota migliore o peggiore del mercato.
 
 Puoi aggiungere partite a mano con **+ Aggiungi partita**, anche di campionati o
 incontri che il monitor non ha segnalato.
+
+### Il P/L si può correggere a mano (cashout)
+
+Di norma il profitto è calcolato: `stake × (quota − 1)` se vinta, `−stake` se persa.
+Ma il calcolo non descrive tutto — il caso tipico è il **cashout**: la partita finisce
+vinta, ma tu hai chiuso prima e hai incassato meno, o hai perso.
+
+Il campo **P/L** è quindi scrivibile. Quando lo compili:
+
+- il valore che hai messo **sostituisce il calcolo** in tutti i conteggi;
+- la cella si marca `man.` e il segnaposto continua a mostrarti quanto avrebbe reso;
+- **svuotando il campo si torna al calcolo automatico**.
+
+Conseguenza da tenere presente, perché è voluta ma sorprende: **win rate e P/L
+possono divergere**. Una partita segnata `Vinta` con P/L `−4.50` conta come vinta nel
+win rate e come perdita nel profitto. È il comportamento corretto per uno storico
+reale — puoi avere il 70% di vincite e un bilancio negativo — e la pagina lo dichiara
+con una nota sotto le statistiche quando ci sono righe corrette a mano.
+
+Nell'export CSV c'è una colonna **P/L manuale**: senza, in Excel una riga con cashout
+sembrerebbe un errore di calcolo.
 
 ### Gli esiti si compilano da soli
 
@@ -311,8 +333,8 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-92 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
-`tests/tracker.test.html` (32, tracker) e `tests/results.test.html` (23, risultati
+105 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
+`tests/tracker.test.html` (45, tracker) e `tests/results.test.html` (23, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 

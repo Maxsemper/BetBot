@@ -3,6 +3,7 @@
 import {
   syncWithSignals, profitLoss, summarize, summarizeByLeague,
   hasUserData, isLocked, isPlayed, toCsv, parseBackup, newRow, RESULTS,
+  computedProfitLoss, hasPlOverride, applyResults,
 } from '../docs/tracker-core.js';
 
 const log = [];
@@ -274,6 +275,128 @@ t('un esito non riconosciuto nel backup viene azzerato, non importato', () => {
   eq(r[0].result, null);
 });
 
+
+// --- P/L corretto a mano (cashout) ------------------------------------------
+
+t('il P/L manuale sostituisce il calcolo', () => {
+  // Vinta a 1.75 con 10 di stake renderebbe +7.50, ma il cashout ha reso 3.
+  const r = { stake: 10, odds: 1.75, result: RESULTS.WIN, plOverride: 3 };
+  eq(computedProfitLoss(r), 7.5, 'il calcolo resta disponibile:');
+  eq(profitLoss(r), 3, 'ma vince il valore inserito:');
+  eq(hasPlOverride(r), true);
+});
+
+t('caso richiesto: vinta ma con P/L negativo', () => {
+  const r = { stake: 10, odds: 1.75, result: RESULTS.WIN, plOverride: -4.50 };
+  eq(profitLoss(r), -4.5);
+  const s = summarize([r]);
+  eq(s.vinte, 1, 'resta contata come vinta:');
+  eq(s.perse, 0);
+  close(s.winRate, 100, 'il win rate la considera vinta:');
+  close(s.profitLoss, -4.5, 'ma il profitto e negativo:');
+  close(s.roi, -45, 'e il ROI pure:');
+});
+
+t('un P/L manuale pari a zero conta come zero, non come assente', () => {
+  const r = { stake: 10, odds: 1.75, result: RESULTS.WIN, plOverride: 0 };
+  eq(hasPlOverride(r), true);
+  eq(profitLoss(r), 0, 'zero e un valore, non "nessun valore"');
+  eq(summarize([r]).profitLoss, 0);
+});
+
+t('svuotare il campo torna al calcolo automatico', () => {
+  const r = { stake: 10, odds: 1.75, result: RESULTS.WIN, plOverride: null };
+  eq(hasPlOverride(r), false);
+  eq(profitLoss(r), 7.5);
+});
+
+t('il P/L manuale vale anche su una partita persa', () => {
+  // Persa ma con cashout parziale: recuperati 4 dei 10.
+  const r = { stake: 10, odds: 1.60, result: RESULTS.LOSE, plOverride: -6 };
+  eq(profitLoss(r), -6);
+  const s = summarize([r]);
+  eq(s.perse, 1);
+  close(s.profitLoss, -6);
+});
+
+t('un P/L manuale rende conclusa la riga anche senza esito', () => {
+  const r = { stake: 10, odds: 1.75, result: null, plOverride: 2.5 };
+  const s = summarize([r]);
+  eq(s.concluse, 1, 'i soldi incassati contano comunque:');
+  eq(s.inCorso, 0);
+  close(s.profitLoss, 2.5);
+  eq(s.winRate, null, 'senza esito non c e win rate:');
+});
+
+t('i totali mescolano righe calcolate e righe corrette a mano', () => {
+  const righe = [
+    { league: 'Serie A', stake: 10, odds: 1.75, result: RESULTS.WIN },                     // +7.50
+    { league: 'Serie A', stake: 10, odds: 1.80, result: RESULTS.WIN, plOverride: -2 },     // -2.00 (cashout)
+    { league: 'Serie A', stake: 20, odds: 1.50, result: RESULTS.LOSE },                    // -20.00
+  ];
+  const s = summarize(righe);
+  close(s.profitLoss, -14.5, 'somma:');
+  close(s.stake, 40);
+  close(s.roi, -36.25);
+  eq(s.vinte, 2); eq(s.perse, 1);
+  close(s.winRate, (2 / 3) * 100);
+  eq(s.conPlManuale, 1, 'quante righe sono corrette a mano:');
+});
+
+t('il riepilogo per campionato usa lo stesso P/L corretto', () => {
+  const righe = [
+    { league: 'Serie A', stake: 10, odds: 1.75, result: RESULTS.WIN, plOverride: -3 },
+    { league: 'Ligue 1', stake: 10, odds: 1.75, result: RESULTS.WIN },
+  ];
+  const per = summarizeByLeague(righe);
+  close(per.find(x => x.league === 'Serie A').profitLoss, -3);
+  close(per.find(x => x.league === 'Ligue 1').profitLoss, 7.5);
+  eq(per.map(x => x.league), ['Ligue 1', 'Serie A'], 'ordinati per profitto reale:');
+});
+
+t('un P/L manuale blocca la riga come ogni altro dato tuo', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  r1[0].plOverride = -5;
+  eq(hasUserData(r1[0]), true);
+  eq(syncWithSignals(r1, vuoto, NOW).rows.length, 1, 'non deve sparire:');
+});
+
+t('la compilazione automatica dell esito non tocca il P/L manuale', () => {
+  const registro = { results: { x: { home: 'A', away: 'B', commenceTime: NOW.toISOString(),
+    homeScore: 0, awayScore: 2, status: 'full_time', outcomeAway: 'win' } } };
+  const { rows } = applyResults([{ id: 'x', result: null, stake: 10, odds: 1.75, plOverride: -3 }], registro);
+  eq(rows[0].result, 'win', 'l esito si compila:');
+  eq(rows[0].plOverride, -3, 'il P/L che hai messo tu resta:');
+  eq(profitLoss(rows[0]), -3);
+});
+
+t('la quota media ignora le righe senza quota invece di contarle zero', () => {
+  const righe = [
+    { stake: 10, odds: 2.00, result: RESULTS.WIN },
+    { stake: 10, odds: null, result: RESULTS.LOSE },   // persa senza quota registrata
+  ];
+  close(summarize(righe).quotaMedia, 2.00, 'due righe, una sola con quota:');
+});
+
+t('il backup conserva il P/L manuale e ignora valori non numerici', () => {
+  const r = parseBackup(JSON.stringify([
+    { id: '1', home: 'A', away: 'B', plOverride: -4.5 },
+    { id: '2', home: 'C', away: 'D', plOverride: 'boh' },
+  ]));
+  eq(r[0].plOverride, -4.5);
+  eq(r[1].plOverride, null);
+});
+
+t('il CSV segnala le righe con P/L corretto a mano', () => {
+  const csv = toCsv([
+    { home: 'A', away: 'B', commenceTime: FUTURO, league: 'Serie A', stake: 10, odds: 1.80, result: RESULTS.WIN, plOverride: -2, notes: '' },
+    { home: 'C', away: 'D', commenceTime: FUTURO, league: 'Serie A', stake: 10, odds: 1.80, result: RESULTS.WIN, notes: '' },
+  ]);
+  const [head, conCashout, normale] = csv.split('\r\n');
+  ok(head.includes('P/L manuale'), 'manca la colonna: ' + head);
+  ok(conCashout.includes('-2;si;'), 'la riga con cashout deve essere marcata: ' + conCashout);
+  ok(normale.includes('8;;'), 'la riga normale no: ' + normale);
+});
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>

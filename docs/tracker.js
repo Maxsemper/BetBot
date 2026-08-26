@@ -11,6 +11,7 @@ import {
   STORAGE_KEY, SCHEMA_VERSION, RESULTS,
   syncWithSignals, profitLoss, summarize, summarizeByLeague,
   isLocked, isPlayed, toCsv, parseBackup, newRow, applyResults,
+  computedProfitLoss, hasPlOverride,
 } from './tracker-core.js';
 
 const state = { rows: [], hidden: new Set(), onlyPlayed: false, hideSettled: false };
@@ -162,6 +163,17 @@ function renderStats() {
     <div class="stat"><span class="k">Stake totale</span><span class="v">€${s.stake.toFixed(2)}</span></div>
     <div class="stat"><span class="k">Quota media</span><span class="v">${s.quotaMedia ? s.quotaMedia.toFixed(2) : '—'}</span></div>
     <div class="stat"><span class="k">In corso</span><span class="v">${s.inCorso}</span></div>`;
+
+  // Con un P/L corretto a mano, win rate e profitto smettono di essere
+  // coerenti fra loro: una partita puo' essere vinta e aver reso meno dello
+  // stake, o averlo perso. Meglio dirlo che lasciar dubitare dei conti.
+  const nota = $('#plNote');
+  nota.hidden = s.conPlManuale === 0;
+  if (s.conPlManuale) {
+    nota.textContent = `${s.conPlManuale} ${s.conPlManuale === 1 ? 'giocata ha' : 'giocate hanno'}`
+      + ' il profitto corretto a mano (per esempio un cashout):'
+      + ' il win rate le conta secondo l’esito, il Profit/Loss usa la cifra che hai inserito.';
+  }
 }
 
 function renderByLeague() {
@@ -217,6 +229,7 @@ function renderTable() {
 function renderRow(row) {
   const tr = document.createElement('tr');
   const pl = profitLoss(row);
+  const manuale = hasPlOverride(row);
   const locked = isLocked(row);
   tr.className = [
     row.result ? 'settled' : '',
@@ -254,7 +267,14 @@ function renderRow(row) {
     </td>
     <td class="c-num"><input class="f-odds" type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Quota"></td>
     <td class="c-num"><input class="f-stake" type="number" step="0.5" min="0" inputmode="decimal" aria-label="Stake in euro"></td>
-    <td class="c-num pl">${eur(pl)}</td>
+    <td class="c-num pl ${manuale ? 'manual' : ''}">
+      <input class="f-pl" type="number" step="0.01" inputmode="decimal"
+        aria-label="Profit/Loss in euro"
+        title="${esc(manuale
+          ? 'Valore inserito da te: sostituisce il calcolo. Svuota il campo per tornare a stake x (quota - 1).'
+          : 'Calcolato da stake e quota. Scrivici dentro per correggerlo, ad esempio dopo un cashout.')}">
+      ${manuale ? '<span class="pl-tag" title="Profitto corretto a mano">man.</span>' : ''}
+    </td>
     <td class="c-notes"><input class="f-notes" type="text" maxlength="200" aria-label="Note" placeholder="…"></td>
     <td class="c-del"><button class="del" title="Rimuovi dal tracker" aria-label="Rimuovi">✕</button></td>`;
 
@@ -263,11 +283,19 @@ function renderRow(row) {
   const fResult = tr.querySelector('.f-result');
   const fOdds = tr.querySelector('.f-odds');
   const fStake = tr.querySelector('.f-stake');
+  const fPl = tr.querySelector('.f-pl');
   const fNotes = tr.querySelector('.f-notes');
   fResult.value = row.result ?? '';
   fOdds.value = row.odds ?? '';
   fStake.value = row.stake ?? '';
   fNotes.value = row.notes ?? '';
+
+  // Campo P/L: mostra il valore corretto a mano se c'e', altrimenti lascia
+  // vedere il calcolo come segnaposto. Cosi' si capisce cosa si sta
+  // sovrascrivendo, e svuotare il campo torna al calcolo.
+  const calcolato = computedProfitLoss(row);
+  fPl.value = manuale ? row.plOverride : '';
+  fPl.placeholder = calcolato === null ? '—' : calcolato.toFixed(2);
 
   const parseNum = v => (v === '' || v == null ? null : Number(v));
 
@@ -286,6 +314,8 @@ function renderRow(row) {
   fResult.onchange = () => update({ result: fResult.value || null, resultAuto: false });
   fOdds.onchange = () => update({ odds: parseNum(fOdds.value) });
   fStake.onchange = () => update({ stake: parseNum(fStake.value) });
+  // Svuotare il campo rimuove la correzione e torna al calcolo automatico.
+  fPl.onchange = () => update({ plOverride: parseNum(fPl.value) });
   fNotes.onchange = () => update({ notes: fNotes.value });
 
   tr.querySelector('.pin').onclick = () => {

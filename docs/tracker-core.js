@@ -11,7 +11,8 @@ const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
 /** Una riga con dati inseriti da te non deve mai sparire da sola. */
 export function hasUserData(row) {
-  return Boolean(row.result) || num(row.stake) !== null || (row.notes ?? '').trim() !== '';
+  return Boolean(row.result) || num(row.stake) !== null
+    || num(row.plOverride) !== null || (row.notes ?? '').trim() !== '';
 }
 
 /** Una riga e' "bloccata" se l'hai fissata tu, se ha dati tuoi, o se e' storica. */
@@ -34,6 +35,8 @@ export function newRow(match, leagueLabel, { source = 'auto', now = new Date() }
     odds: num(match.awayStats?.max),
     stake: null,
     result: null,
+    // Profitto corretto a mano: quando c'e', sostituisce il calcolo. Vedi profitLoss().
+    plOverride: null,
     notes: '',
     signalOdds: num(match.awayStats?.min),
     signalAt: now.toISOString(),
@@ -144,8 +147,11 @@ export function applyResults(rows, registry) {
   return { rows: out, filled };
 }
 
-/** Profitto o perdita in euro. null se la scommessa non e' ancora conclusa. */
-export function profitLoss(row) {
+/**
+ * Profitto o perdita calcolato dalla scommessa, senza correzioni manuali.
+ * null se la scommessa non e' ancora conclusa.
+ */
+export function computedProfitLoss(row) {
   const stake = num(row.stake);
   const odds = num(row.odds);
   if (stake === null || !row.result) return null;
@@ -155,12 +161,31 @@ export function profitLoss(row) {
   return null;
 }
 
+/** Hai corretto tu il profitto di questa riga? */
+export const hasPlOverride = row => num(row.plOverride) !== null;
+
+/**
+ * Profitto o perdita effettivo, in euro.
+ *
+ * Se hai inserito un valore a mano vince quello: serve per i casi in cui il
+ * calcolo stake x (quota - 1) non descrive quello che e' successo davvero.
+ * Il caso tipico e' il cashout: la partita e' vinta, ma hai chiuso prima e
+ * hai incassato meno — o hai perso.
+ */
+export function profitLoss(row) {
+  const manuale = num(row.plOverride);
+  return manuale !== null ? manuale : computedProfitLoss(row);
+}
+
 /** Una riga entra nelle statistiche solo se ci hai messo dei soldi. */
 export const isPlayed = row => (num(row.stake) ?? 0) > 0;
 
 export function summarize(rows) {
   const played = rows.filter(isPlayed);
-  const settled = played.filter(r => r.result && profitLoss(r) !== null);
+  // Conclusa = c'e' un profitto determinabile. Un P/L inserito a mano rende
+  // conclusa la riga anche senza esito: se hai messo una cifra, quei soldi
+  // sono reali e devono entrare nei conti.
+  const settled = played.filter(r => profitLoss(r) !== null);
 
   const stake = settled.reduce((s, r) => s + r.stake, 0);
   const pl = settled.reduce((s, r) => s + profitLoss(r), 0);
@@ -181,10 +206,17 @@ export function summarize(rows) {
     profitLoss: pl,
     roi: stake > 0 ? (pl / stake) * 100 : null,
     winRate: decided > 0 ? (wins / decided) * 100 : null,
-    quotaMedia: settled.length
-      ? settled.reduce((s, r) => s + (num(r.odds) ?? 0), 0) / settled.length
-      : null,
+    // Solo le righe che una quota ce l'hanno davvero: contare uno zero per
+    // quelle senza quota abbasserebbe la media senza motivo.
+    quotaMedia: media(settled.map(r => num(r.odds)).filter(q => q !== null)),
+    // Quante righe hanno un profitto corretto a mano (tipicamente cashout).
+    // Servono a spiegare perche' win rate e P/L possono divergere.
+    conPlManuale: settled.filter(hasPlOverride).length,
   };
+}
+
+function media(valori) {
+  return valori.length ? valori.reduce((a, b) => a + b, 0) / valori.length : null;
 }
 
 /** Statistiche separate per campionato, per capire dove la strategia regge. */
@@ -202,7 +234,7 @@ export function summarizeByLeague(rows) {
     .sort((a, b) => (b.concluse > 0) - (a.concluse > 0) || b.profitLoss - a.profitLoss);
 }
 
-const CSV_HEADERS = ['Data', 'Campionato', 'Partita', 'Esito', 'Quota', 'Stake', 'Profit/Loss', 'Note'];
+const CSV_HEADERS = ['Data', 'Campionato', 'Partita', 'Esito', 'Quota', 'Stake', 'Profit/Loss', 'P/L manuale', 'Note'];
 const RESULT_LABEL = { win: 'Vinta', lose: 'Persa', void: 'Annullata' };
 
 function csvCell(v) {
@@ -228,6 +260,9 @@ export function toCsv(rows) {
       dec(num(r.odds)),
       dec(num(r.stake)),
       dec(pl === null ? null : Math.round(pl * 100) / 100),
+      // Senza questa colonna, in Excel una riga con cashout sembrerebbe un
+      // errore di calcolo: stake x (quota - 1) non torna con il P/L.
+      hasPlOverride(r) ? 'si' : '',
       r.notes ?? '',
     ].map(csvCell).join(';'));
   }
@@ -247,6 +282,7 @@ export function parseBackup(text) {
       ...r,
       odds: num(r.odds),
       stake: num(r.stake),
+      plOverride: num(r.plOverride),
       notes: typeof r.notes === 'string' ? r.notes : '',
       result: [RESULTS.WIN, RESULTS.LOSE, RESULTS.VOID].includes(r.result) ? r.result : null,
     };

@@ -268,3 +268,18 @@ dialog button.primary { background: var(--accent); border-color: var(--accent); 
   background: var(--panel-2); border: 1px solid var(--line);
 }
 .tracker .auto-tag { color: var(--accent); font-size: 11px; margin-left: 6px; cursor: help; }
+
+/* Campo P/L modificabile e nota sui profitti corretti a mano. */
+.tracker .c-num.pl { position: relative; }
+.tracker .pl input { text-align: right; font-weight: 650; }
+.tracker .c-num.pl.manual input { border-color: var(--accent); }
+.tracker .pl-tag {
+  position: absolute; right: 12px; bottom: -3px;
+  font-size: 9px; letter-spacing: .04em; color: var(--accent);
+  background: var(--panel); padding: 0 3px; cursor: help;
+}
+.tracker tr.pos-row .pl input { color: var(--hit); }
+.tracker tr.neg-row .pl input { color: var(--danger); }
+.pl-note {
+  margin: 0; padding: 8px 20px 12px; font-size: 12px; color: var(--muted);
+}
