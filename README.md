@@ -78,6 +78,7 @@ La pagina sarà su `https://<tuo-utente>.github.io/<tuo-repo>/`.
 scripts/config.mjs              soglia, campionati, regioni, modo di alert
 scripts/providers/*.mjs         l'unico punto che parla con il feed quote
 scripts/rules.mjs               la logica della strategia (pura, testabile)
+scripts/history.mjs             storico per partita e calcolo salita/discesa
 scripts/alerts/telegram.mjs     costruzione e invio del messaggio
 scripts/fetch-odds.mjs          orchestratore
 docs/                           la pagina web (GitHub Pages)
@@ -106,6 +107,7 @@ Si cambia tutto da `scripts/config.mjs` o via variabili d'ambiente nel workflow.
 | `BOOKMAKERS` | *(vuoto)* | whitelist di bookmaker, es. `pinnacle,unibet_it,betclic` |
 | `EXCLUDE_EXCHANGES` | `true` | esclude Betfair, Matchbook, Smarkets dal calcolo — vedi sotto |
 | `MAX_DEVIATION` | `1.30` | scarta le quote oltre ±30% dalla mediana; `0` disattiva |
+| `TREND_THRESHOLD_PCT` | `1` | sotto questa variazione % la quota è "stabile" |
 | `MAX_DAYS_AHEAD` | `14` | ignora le partite oltre N giorni |
 
 ### Perché gli exchange sono esclusi
@@ -129,12 +131,49 @@ rispetto alla mediana del mercato non deve far scattare un alert da solo.
 I bookmaker esclusi **restano visibili nella pagina**, in grigio e con il motivo:
 sono utili da vedere, non da usare per decidere.
 
-**Cambiare frequenza:** modifica il `cron` in `.github/workflows/monitor.yml`.
-`0 */3 * * *` = ogni 3 ore (ricorda il costo in crediti).
-
 **Modo di alert consigliato:** `any` è la lettura letterale della regola ma è il più
 rumoroso — basta un singolo bookmaker fuori linea. `best` segnala solo quando *tutto*
 il mercato prezza l'ospite sotto 1.85, ed è il segnale più solido.
+
+**Cambiare frequenza:** modifica il `cron` in `.github/workflows/monitor.yml`.
+Attenzione al costo: ogni giro consuma 3 crediti (1 per campionato) a prescindere
+da quante partite ci sono.
+
+| Frequenza | Giri/giorno | Crediti/mese | Piano gratuito (500) |
+| --- | --- | --- | --- |
+| ogni 6h (attuale) | 4 | ~365 | ✅ |
+| ogni 4h | 6 | ~548 | ❌ |
+| ogni 3h | 8 | ~730 | ❌ |
+| ogni ora | 24 | ~2190 | ❌ |
+
+Sui tre campionati, **6 ore è il massimo che il piano gratuito consente**.
+
+---
+
+## Tendenza della quota
+
+Ogni partita mostra se la quota del "2" sta **scendendo** (▼ verde: squadra ospite
+sempre più favorita, il verso che interessa alla strategia), **salendo** (▲ rosso) o
+è stabile, con uno sparkline dell'andamento recente. Il dettaglio completo —
+variazione dal giro precedente, variazione dalla prima rilevazione, numero di
+rilevazioni — è nel tooltip della freccia.
+
+**Non costa crediti API:** sono gli stessi dati del giro corrente, confrontati con
+quelli conservati in `docs/data/history.json`. La risoluzione è però quella del cron:
+a 6 ore si vede la deriva di fondo, non i movimenti nelle ore prima del fischio
+d'inizio, che sono i più bruschi.
+
+Due scelte che vale la pena conoscere:
+
+- Il confronto usa la **media** dei bookmaker, non il minimo. Il minimo dipende da
+  quale singolo bookmaker è più basso in quel momento e salta anche quando il mercato
+  non si è mosso; la media è il consenso.
+- Lo sparkline ha la **scala ancorata** a un minimo del 4% del valore. Senza,
+  si autoscalerebbe sul proprio intervallo e un'oscillazione da centesimo
+  sembrerebbe un crollo.
+
+La prima rilevazione di una partita mostra `nuova`: serve un secondo giro perché
+ci sia un termine di paragone.
 
 ---
 
@@ -172,7 +211,7 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-24 test sulla logica della strategia. Aprire `tests/rules.test.html` **da un server HTTP** (i moduli ES non si caricano da
+37 test sulla logica della strategia. Aprire `tests/rules.test.html` **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 
 ```bash

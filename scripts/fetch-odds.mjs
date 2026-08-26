@@ -9,6 +9,7 @@ import { dirname } from 'node:path';
 
 import { CONFIG } from './config.mjs';
 import { annotate, collectTriggered, diffAgainstState } from './rules.mjs';
+import { appendSamples, attachTrends } from './history.mjs';
 // >>> Per cambiare sorgente quote, sostituisci solo questa riga. <<<
 import { fetchOdds, NAME as PROVIDER } from './providers/the-odds-api.mjs';
 import { sendTelegram, buildMessage } from './alerts/telegram.mjs';
@@ -40,6 +41,12 @@ async function main() {
   console.log(`Soglia: quota "2" <= ${config.threshold} (modo: ${config.alertMode}) · regioni: ${config.regions.join(',')}`);
 
   const data = annotate(await fetchOdds(config), config);
+
+  // Il trend va calcolato prima di raccogliere i segnali, cosi' finisce anche
+  // nel messaggio di alert ("in discesa da 1.78").
+  const history = appendSamples(await readJson(config.paths.history, null), data);
+  attachTrends(data, history, config.trendThresholdPct);
+
   const triggered = collectTriggered(data, config);
   const total = data.leagues.reduce((n, l) => n + l.matches.length, 0);
   console.log(`Partite totali: ${total} · sotto soglia: ${triggered.length}`);
@@ -52,10 +59,10 @@ async function main() {
     await sendTelegram(buildMessage(fresh, config.threshold, process.env.PAGE_URL ?? ''));
   }
 
-  const history = await readJson(config.paths.alerts, { items: [] });
+  const alertHistory = await readJson(config.paths.alerts, { items: [] });
   const items = [
     ...fresh.map(a => ({ ...a, notifiedAt: new Date().toISOString() })),
-    ...history.items,
+    ...alertHistory.items,
   ].slice(0, MAX_ALERT_HISTORY);
 
   data.threshold = config.threshold;
@@ -65,6 +72,7 @@ async function main() {
   await writeJson(config.paths.odds, data, { pretty: false });
   await writeJson(config.paths.alerts, { updatedAt: new Date().toISOString(), items });
   await writeJson(config.paths.state, { updatedAt: new Date().toISOString(), active: nextActive });
+  await writeJson(config.paths.history, history, { pretty: false });
 
   if (data.errors.length) {
     console.error(`Completato con ${data.errors.length} errore/i:\n - ${data.errors.join('\n - ')}`);

@@ -90,18 +90,60 @@ function renderLeagues(data) {
   }
 }
 
+// --- Tendenza della quota ---------------------------------------------------
+// La quota "2" che SCENDE significa squadra ospite piu' favorita: e' il verso
+// che interessa alla strategia, quindi lo si evidenzia in verde.
+
+const TREND_ARROW = { down: '▼', up: '▲', flat: '=' };
+
+function trendBadge(tr) {
+  if (!tr) return '<span class="trend none" title="Prima rilevazione: nessun confronto disponibile">nuova</span>';
+  const sign = tr.delta > 0 ? '+' : '';
+  const body = tr.direction === 'flat' ? 'stabile' : `${sign}${tr.delta.toFixed(2)}`;
+  const title = `Rispetto al giro precedente (${fmtTime(tr.previousAt)}): ${sign}${tr.deltaPct}%.`
+    + ` Dalla prima rilevazione (${fmtTime(tr.openedAt)}, ${tr.open.toFixed(2)}): ${tr.fromOpen > 0 ? '+' : ''}${tr.fromOpen.toFixed(2)}.`
+    + ` ${tr.samples} rilevazioni.`;
+  return `<span class="trend ${tr.direction}" title="${esc(title)}">${TREND_ARROW[tr.direction]} ${body}</span>`;
+}
+
+/** Mini grafico dell'andamento della media, ultime rilevazioni. */
+function sparkline(tr) {
+  const pts = tr?.spark;
+  if (!pts || pts.length < 3) return '';
+  const min = Math.min(...pts), max = Math.max(...pts);
+  const mid = (min + max) / 2;
+  // Scala ancorata a un minimo del 4% del valore: senza questo il grafico si
+  // autoscalerebbe sul proprio intervallo e un'oscillazione da centesimo
+  // apparirebbe come un crollo. Le quote ferme devono sembrare ferme.
+  const span = Math.max(max - min, mid * 0.04) || 1;
+  const lo = mid - span / 2;
+  const w = 54, h = 16;
+  const d = pts.map((p, i) => {
+    const x = (i / (pts.length - 1)) * w;
+    const y = h - ((p - lo) / span) * (h - 2) - 1;
+    return `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg class="spark ${tr.direction}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"
+    aria-label="Andamento della quota, ultime ${pts.length} rilevazioni: da ${pts[0].toFixed(2)} a ${pts[pts.length-1].toFixed(2)}">
+    <path d="${d}" fill="none" stroke="currentColor" stroke-width="1.5"
+      stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
 function matchCard(m, threshold) {
   const el = document.createElement('article');
   el.className = 'match' + (m.triggered ? ' hit' : '');
 
   const s = m.awayStats ?? {};
   const under = m.books.filter(b => !b.excluded && b.away <= threshold).length;
+  const tr = m.trend;
   el.innerHTML = `
     <div class="match-head">
       <div class="kickoff">${esc(fmtTime(m.commenceTime))}</div>
       <div class="teams">${esc(m.home)} <span style="opacity:.5">–</span> <span class="away">${esc(m.away)}</span></div>
       <div class="summary">
         ${m.triggered ? '<span class="badge">SEGNALE</span>' : ''}
+        ${trendBadge(tr)}
+        ${sparkline(tr)}
         <span class="best">min <b>${fmtOdd(s.min)}</b> · media ${fmtOdd(s.avg)} · ${s.count ?? 0} book${under ? ` · <b>${under}</b> sotto soglia` : ""}</span>
       </div>
     </div>`;
@@ -135,6 +177,7 @@ function renderAlerts(alerts) {
   $('#alertsList').innerHTML = items.slice(0, 30).map(a => `
     <li>${esc(fmtTime(a.notifiedAt ?? a.commenceTime))} — <b>${esc(a.league)}</b>:
     ${esc(a.home)} – <b>${esc(a.away)}</b> · quota 2 da <b>${fmtOdd(a.minAway)}</b>
+    ${a.trend ? trendBadge(a.trend) : ''}
     (${esc(a.matchingBooks.map(b => b.title).join(', '))})</li>`).join('');
 }
 

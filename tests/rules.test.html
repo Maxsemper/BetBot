@@ -2,6 +2,7 @@
 <script type="module">
 import { awayStats, isTriggered, annotate, collectTriggered, diffAgainstState, markExcluded, includedBooks } from '../scripts/rules.mjs';
 import { buildMessage } from '../scripts/alerts/telegram.mjs';
+import { appendSamples, computeTrend, attachTrends } from '../scripts/history.mjs';
 
 const log = [];
 let fails = 0;
@@ -213,6 +214,122 @@ t('collectTriggered riporta quanti book sono sotto soglia', () => {
   const [a] = collectTriggered(d, CFG);
   eq(a.booksUnderThreshold, 2);
   eq(a.bookCount, 4);
+});
+
+// --- storico e tendenza ---
+
+const T0 = new Date('2026-08-26T00:00:00Z');
+const T6 = new Date('2026-08-26T06:00:00Z');
+const T12 = new Date('2026-08-26T12:00:00Z');
+const KICK = '2026-08-30T18:45:00Z';
+const KICK_LONTANO = '2027-01-01T18:45:00Z';
+const withKick = (id, prices) => ({ id, home: 'A', away: 'B', commenceTime: KICK,
+  books: prices.map((p, i) => ({ key: 'b' + i, title: 'Book ' + i, home: 3, draw: 3.3, away: p })) });
+const run = (prev, prices, when) => {
+  const d = dataset([withKick('1', prices)]);
+  annotate(d, CFG);
+  return { hist: appendSamples(prev, d, when), data: d };
+};
+
+t('primo giro: una rilevazione, nessuna tendenza', () => {
+  const { hist } = run(null, [1.70, 1.72, 1.74], T0);
+  eq(hist.series['1'].s.length, 1);
+  eq(computeTrend(hist.series['1']), null);
+});
+
+t('secondo giro: la serie cresce e la tendenza compare', () => {
+  const a = run(null, [1.70, 1.72, 1.74], T0).hist;
+  const b = run(a, [1.60, 1.62, 1.64], T6).hist;
+  eq(b.series['1'].s.length, 2);
+  const tr = computeTrend(b.series['1']);
+  eq(tr.direction, 'down');
+  ok(tr.delta < 0, 'delta deve essere negativo: ' + tr.delta);
+  eq(tr.samples, 2);
+});
+
+t('quota in salita', () => {
+  const a = run(null, [1.60], T0).hist;
+  const tr = computeTrend(run(a, [1.90], T6).hist.series['1']);
+  eq(tr.direction, 'up');
+  ok(tr.delta > 0);
+});
+
+t('variazione sotto soglia = stabile', () => {
+  const a = run(null, [2.00], T0).hist;
+  const tr = computeTrend(run(a, [2.01], T6).hist.series['1'], 1); // +0.5%
+  eq(tr.direction, 'flat');
+});
+
+t('quote identiche non allungano la serie', () => {
+  const a = run(null, [1.70, 1.72], T0).hist;
+  const b = run(a, [1.70, 1.72], T6).hist;
+  eq(b.series['1'].s.length, 1, 'la serie non deve crescere:');
+  ok(b.series['1'].s[0][0] > a.series['1'].s[0][0], 'il timestamp deve aggiornarsi');
+});
+
+t('fromOpen si misura sulla prima rilevazione, non sulla precedente', () => {
+  let h = run(null, [2.00], T0).hist;
+  h = run(h, [1.90], T6).hist;
+  h = run(h, [1.80], T12).hist;
+  const tr = computeTrend(h.series['1']);
+  ok(Math.abs(tr.delta - (-0.10)) < 1e-6, 'delta vs precedente: ' + tr.delta);
+  ok(Math.abs(tr.fromOpen - (-0.20)) < 1e-6, 'fromOpen: ' + tr.fromOpen);
+  eq(tr.open, 2);
+});
+
+t('le partite gia iniziate escono dallo storico', () => {
+  const h = run(null, [1.70], T0).hist;
+  ok(h.series['1'], 'presente prima');
+  const dopo = appendSamples(h, { leagues: [] }, new Date('2026-08-30T23:00:00Z'));
+  eq(Object.keys(dopo.series), [], 'deve essere svuotato dopo il fischio d\'inizio');
+});
+
+t('una partita non ancora iniziata resta anche se assente da un giro', () => {
+  const h = run(null, [1.70], T0).hist;
+  const dopo = appendSamples(h, { leagues: [] }, T6);
+  ok(dopo.series['1'], 'non va scartata prima del kickoff');
+});
+
+t('la serie e limitata: non cresce senza fine', () => {
+  let h = null;
+  for (let i = 0; i < 60; i++) {
+    const d = dataset([{ ...withKick('1', [1.50 + i * 0.01]), commenceTime: KICK_LONTANO }]);
+    annotate(d, CFG);
+    h = appendSamples(h, d, new Date(T0.getTime() + i * 6 * 3600e3));
+  }
+  ok(h.series['1'].s.length <= 48, 'lunghezza: ' + h.series['1'].s.length);
+  ok(h.series['1'].s.length >= 40, 'troppo corta: ' + h.series['1'].s.length);
+});
+
+t('attachTrends popola match.trend', () => {
+  const a = run(null, [1.70], T0);
+  const b = run(a.hist, [1.60], T6);
+  attachTrends(b.data, b.hist, 1);
+  eq(b.data.leagues[0].matches[0].trend.direction, 'down');
+});
+
+t('la tendenza usa la media, non il minimo', () => {
+  // Il minimo scende (1.70 -> 1.60) ma la media sale: deve risultare in salita.
+  const a = run(null, [1.70, 1.80, 1.90], T0).hist;      // media 1.80
+  const tr = computeTrend(run(a, [1.60, 2.10, 2.30], T6).hist.series['1']); // media 2.00
+  eq(tr.direction, 'up');
+});
+
+t('il messaggio Telegram riporta la tendenza', () => {
+  const a = run(null, [1.80], T0);
+  const b = run(a.hist, [1.60], T6);
+  attachTrends(b.data, b.hist, 1);
+  const msg = buildMessage(collectTriggered(b.data, CFG), 1.85, '');
+  ok(msg.includes('▼'), 'manca la freccia: ' + msg);
+  ok(msg.includes('da 1.80'), 'manca la quota di apertura: ' + msg);
+});
+
+t('senza tendenza il messaggio non si rompe', () => {
+  const a = run(null, [1.60], T0);
+  attachTrends(a.data, a.hist, 1);
+  const msg = buildMessage(collectTriggered(a.data, CFG), 1.85, '');
+  ok(msg.includes('media'), 'il messaggio deve restare valido');
+  ok(!msg.includes('▼') && !msg.includes('▲'), 'nessuna freccia attesa');
 });
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');

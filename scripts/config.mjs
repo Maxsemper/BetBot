@@ -45,6 +45,10 @@ export const CONFIG = {
   // 0 disattiva il filtro.
   maxDeviation: Number(env.MAX_DEVIATION ?? 1.30),
 
+  // Sotto questa variazione percentuale della media, la quota e' "stabile".
+  // Serve a non mostrare frecce per oscillazioni da centesimo.
+  trendThresholdPct: Number(env.TREND_THRESHOLD_PCT ?? 1),
+
   // Ignora le partite che iniziano oltre N giorni da adesso (riduce rumore).
   maxDaysAhead: Number(env.MAX_DAYS_AHEAD ?? 14),
 
@@ -53,6 +57,7 @@ export const CONFIG = {
     odds: 'docs/data/odds.json',
     alerts: 'docs/data/alerts.json',
     state: 'docs/data/state.json',
+    history: 'docs/data/history.json',
   },
 };
 

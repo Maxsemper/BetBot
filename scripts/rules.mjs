@@ -120,6 +120,7 @@ export function collectTriggered(data, config) {
         bestAway: match.awayStats.max,
         minAway: match.awayStats.min,
         avgAway: match.awayStats.avg,
+        trend: match.trend ?? null,
       });
     }
   }

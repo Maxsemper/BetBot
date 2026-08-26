@@ -16,6 +16,19 @@ function formatKickoff(iso) {
 }
 
 /**
+ * Tendenza della quota rispetto al giro precedente, in coda alla riga di
+ * riepilogo. Stringa vuota se la partita e' appena comparsa nel feed e non
+ * c'e' ancora un termine di paragone.
+ */
+function formatTrend(trend) {
+  if (!trend) return '';
+  const arrow = { down: '▼', up: '▲', flat: '=' }[trend.direction];
+  const sign = trend.delta > 0 ? '+' : '';
+  const move = trend.direction === 'flat' ? 'stabile' : `${sign}${trend.delta.toFixed(2)}`;
+  return ` · ${arrow} ${move} (da ${trend.open.toFixed(2)})`;
+}
+
+/**
  * Costruisce il messaggio per un gruppo di alert.
  * @param {Array} alerts elementi prodotti da collectTriggered()
  * @param {number} threshold
@@ -35,7 +48,7 @@ ${alerts.length} ${alerts.length === 1 ? "segnale rilevato" : "segnali rilevati"
       `${escapeHtml(a.home)} - <b>${escapeHtml(a.away)}</b>`,
       `  Quota 2 (${escapeHtml(a.away)}):`,
       books,
-      `  <i>migliore: ${a.bestAway.toFixed(2)} · media: ${a.avgAway.toFixed(2)}</i>`,
+      `  <i>migliore: ${a.bestAway.toFixed(2)} · media: ${a.avgAway.toFixed(2)}${formatTrend(a.trend)}</i>`,
     ].join('\n');
   }).join('\n');
 

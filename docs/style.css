@@ -132,3 +132,17 @@ footer p { margin: 4px 0; }
   border: 1px solid var(--line); border-radius: 4px;
   padding: 1px 5px; margin-left: 6px; white-space: nowrap;
 }
+
+/* Tendenza della quota "2": in discesa = ospite piu' favorita = verso utile. */
+.trend {
+  font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap;
+  padding: 2px 7px; border-radius: 999px; border: 1px solid transparent; cursor: help;
+}
+.trend.down { color: var(--hit);   background: var(--hit-bg); border-color: color-mix(in srgb, var(--hit) 35%, transparent); }
+.trend.up   { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); border-color: color-mix(in srgb, var(--danger) 30%, transparent); }
+.trend.flat { color: var(--muted); border-color: var(--line); }
+.trend.none { color: var(--muted); border-color: var(--line); opacity: .7; font-style: italic; }
+
+.spark { color: var(--muted); flex: none; }
+.spark.down { color: var(--hit); }
+.spark.up   { color: var(--danger); }
