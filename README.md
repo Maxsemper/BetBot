@@ -79,6 +79,9 @@ scripts/config.mjs              soglia, campionati, regioni, modo di alert
 scripts/providers/*.mjs         l'unico punto che parla con il feed quote
 scripts/rules.mjs               la logica della strategia (pura, testabile)
 scripts/history.mjs             storico per partita e calcolo salita/discesa
+scripts/results.mjs             registro dei risultati delle partite giocate
+scripts/results/espn.mjs        fonte risultati gratuita, senza chiave
+docs/team-match.js              abbinamento nomi squadra fra i due feed
 scripts/alerts/telegram.mjs     costruzione e invio del messaggio
 scripts/fetch-odds.mjs          orchestratore
 docs/index.html                 pagina Segnali: partite e quote sotto soglia
@@ -210,6 +213,51 @@ se hai preso una quota migliore o peggiore del mercato.
 Puoi aggiungere partite a mano con **+ Aggiungi partita**, anche di campionati o
 incontri che il monitor non ha segnalato.
 
+### Gli esiti si compilano da soli
+
+Quando una partita finisce, il job ne recupera il punteggio e la pagina compila
+`Vinta` / `Persa` senza che tu debba fare niente. La riga mostra il risultato
+(`1–2`) e l'etichetta `auto`; il profitto si calcola di conseguenza.
+
+**Non consuma crediti di The Odds API.** La fonte è l'API pubblica di ESPN, che non
+richiede chiave: `scripts/results/espn.mjs`. Il job la interroga solo per i
+campionati che hanno partite finite e ancora senza punteggio — nei giri in cui non
+c'è niente da risolvere non fa nessuna chiamata.
+
+Due garanzie:
+
+- **Un esito che hai messo tu non viene mai sovrascritto.** Se correggi un esito
+  automatico, l'etichetta `auto` sparisce: da quel momento è un dato tuo.
+- **In caso di dubbio non indovina.** Se la partita non viene abbinata con certezza,
+  resta senza esito e la compili a mano.
+
+Il pareggio conta come **persa**: la scommessa è sul "2", non sul "doppia chance".
+
+#### L'abbinamento dei nomi
+
+I due feed chiamano le squadre in modo diverso, e questo è il punto delicato:
+
+```
+The Odds API                     ESPN
+Inter Milan                      Internazionale
+Rennes                           Stade Rennais
+Real Racing Club de Santander    Racing Santander
+Auxerre                          AJ Auxerre
+```
+
+`docs/team-match.js` normalizza (accenti, trattini, sigle come `AC`/`AJ`/`LOSC`) e
+usa una piccola tabella di alias per i casi senza parole in comune. Sulle 42 partite
+attualmente nel feed abbina 42 su 42.
+
+La regola più importante è quella che evita i **falsi abbinamenti**: un nome ridotto
+a una sola parola deve coincidere esattamente, mai essere "contenuto" nell'altro.
+Senza questo vincolo `Paris FC` risulterebbe contenuto in `Paris Saint-Germain` —
+due squadre diverse dello stesso campionato. `Real` non è fra le parole ignorate,
+altrimenti Real Madrid, Real Sociedad e Real Betis si confonderebbero fra loro.
+
+Se una partita non viene abbinata, il job la segnala nei log (`non abbinata: …`) e la
+tiene in attesa per dieci giorni: è così che ci si accorge di un alias mancante.
+
 ### Dove finiscono i dati
 
 **Nel tuo browser, e da nessun'altra parte.** Il repository è pubblico: stake e
@@ -263,8 +311,9 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-69 test in tutto: `tests/rules.test.html` (37, segnale e tendenza) e
-`tests/tracker.test.html` (32, tracker). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
+92 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
+`tests/tracker.test.html` (32, tracker) e `tests/results.test.html` (23, risultati
+e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 
 ```bash

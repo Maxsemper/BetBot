@@ -58,6 +58,7 @@ export const CONFIG = {
     alerts: 'docs/data/alerts.json',
     state: 'docs/data/state.json',
     history: 'docs/data/history.json',
+    results: 'docs/data/results.json',
   },
 };
 

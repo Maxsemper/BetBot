@@ -1,0 +1,217 @@
+<!doctype html><meta charset="utf-8"><title>test risultati</title><body><pre id="out">running…</pre>
+<script type="module">
+import { tokens, sameTeam, findFixture, outcomeForAway } from '../docs/team-match.js';
+import { applyResults, profitLoss, RESULTS } from '../docs/tracker-core.js';
+import { updateResults } from '../scripts/results.mjs';
+
+const log = [];
+let fails = 0;
+async function t(name, fn) {
+  try { await fn(); log.push('PASS  ' + name); }
+  catch (e) { fails++; log.push('FAIL  ' + name + '\n        ' + e.message); }
+}
+function eq(a, b, msg) {
+  const A = JSON.stringify(a), B = JSON.stringify(b);
+  if (A !== B) throw new Error((msg ?? '') + ' atteso ' + B + ', ottenuto ' + A);
+}
+function ok(v, msg) { if (!v) throw new Error(msg ?? 'atteso true'); }
+
+// --- abbinamento dei nomi ----------------------------------------------------
+// Le coppie qui sotto sono TUTTE osservate sui feed reali, non inventate.
+
+await t('nomi identici o quasi', async () => {
+  ok(sameTeam('Atalanta BC', 'Atalanta'));
+  ok(sameTeam('Elche CF', 'Elche'));
+  ok(sameTeam('CA Osasuna', 'Osasuna'));
+  ok(sameTeam('Paris Saint Germain', 'Paris Saint-Germain'), 'il trattino non deve contare');
+  ok(sameTeam('Málaga', 'Malaga'), 'gli accenti non devono contare');
+  ok(sameTeam('AJ Auxerre', 'Auxerre'), 'le sigle non devono contare');
+  ok(sameTeam('LOSC Lille', 'Lille'));
+});
+
+await t('nomi senza parole in comune, risolti dagli alias', async () => {
+  ok(sameTeam('Inter Milan', 'Internazionale'));
+  ok(sameTeam('Rennes', 'Stade Rennais'));
+  ok(sameTeam('Deportivo La Coruña', 'Deportivo'));
+  ok(sameTeam('Athletic Bilbao', 'Athletic Club'));
+  ok(sameTeam('Lyon', 'Olympique Lyonnais'));
+});
+
+await t('Paris FC non e Paris Saint-Germain', async () => {
+  // Il caso che ha determinato la regola: "Paris FC" si riduce a una sola
+  // parola, contenuta in "Paris Saint-Germain". Sono squadre diverse.
+  eq(tokens('Paris FC'), ['paris']);
+  ok(!sameTeam('Paris FC', 'Paris Saint-Germain'), 'ABBINEREBBE due squadre diverse');
+});
+
+await t('le squadre che condividono "Real" restano distinte', async () => {
+  ok(!sameTeam('Real Madrid', 'Real Sociedad'));
+  ok(!sameTeam('Real Madrid', 'Real Betis'));
+  ok(!sameTeam('Real Betis', 'Real Sociedad'));
+});
+
+await t('altre squadre diverse non si confondono', async () => {
+  ok(!sameTeam('AC Milan', 'Inter Milan'));
+  ok(!sameTeam('Atletico Madrid', 'Real Madrid'));
+  ok(!sameTeam('Torino', 'Toro FC'));
+  ok(!sameTeam('', 'Lecce'), 'un nome vuoto non deve abbinare niente');
+});
+
+// --- ricerca della partita ---------------------------------------------------
+
+const fx = (home, away, when, homeScore, awayScore, status = 'full_time') =>
+  ({ home, away, commenceTime: when, homeScore, awayScore, status, completed: status !== 'scheduled' });
+
+await t('abbina rispettando il verso casa/trasferta', async () => {
+  const fixtures = [fx('Elche', 'Barcelona', '2026-08-23T19:30Z', 0, 5)];
+  ok(findFixture({ home: 'Elche CF', away: 'Barcelona', commenceTime: '2026-08-23T19:30:00Z' }, fixtures));
+  ok(!findFixture({ home: 'Barcelona', away: 'Elche CF', commenceTime: '2026-08-23T19:30:00Z' }, fixtures),
+    'invertite non devono abbinare');
+});
+
+await t('tollera uno scarto di orario ma non di giorni', async () => {
+  const fixtures = [fx('Elche', 'Barcelona', '2026-08-23T21:30Z', 0, 5)];
+  ok(findFixture({ home: 'Elche', away: 'Barcelona', commenceTime: '2026-08-23T19:30:00Z' }, fixtures),
+    'due ore di scarto devono andare bene');
+  ok(!findFixture({ home: 'Elche', away: 'Barcelona', commenceTime: '2026-08-27T19:30:00Z' }, fixtures),
+    'quattro giorni no');
+});
+
+await t('due candidati identici: nessun abbinamento, meglio che sbagliato', async () => {
+  const fixtures = [
+    fx('Elche', 'Barcelona', '2026-08-23T19:30Z', 0, 5),
+    fx('Elche', 'Barcelona', '2026-08-23T21:30Z', 1, 1),
+  ];
+  eq(findFixture({ home: 'Elche', away: 'Barcelona', commenceTime: '2026-08-23T20:30:00Z' }, fixtures), null);
+});
+
+// --- esito della scommessa sul "2" ------------------------------------------
+
+await t('vince solo se vince la squadra ospite', async () => {
+  eq(outcomeForAway(fx('Elche', 'Barcelona', 'x', 0, 5)), 'win', 'ospite vincente:');
+  eq(outcomeForAway(fx('Roma', 'Fiorentina', 'x', 4, 0)), 'lose', 'casa vincente:');
+  eq(outcomeForAway(fx('Osasuna', 'Levante', 'x', 0, 0)), 'lose', 'il pareggio perde:');
+});
+
+await t('rinviata o annullata vale come annullata', async () => {
+  eq(outcomeForAway(fx('A', 'B', 'x', null, null, 'postponed')), 'void');
+  eq(outcomeForAway(fx('A', 'B', 'x', null, null, 'canceled')), 'void');
+});
+
+await t('una partita non conclusa non produce esito', async () => {
+  eq(outcomeForAway(fx('A', 'B', 'x', 0, 0, 'scheduled')), null);
+  eq(outcomeForAway(null), null);
+});
+
+// --- registro dei risultati --------------------------------------------------
+
+const ORA = new Date('2026-08-31T12:00:00Z');
+const feed = (...ms) => ({ leagues: [{ key: 'soccer_italy_serie_a', label: 'Serie A', matches: ms }] });
+const partita = (id, home, away, when) => ({ id, home, away, commenceTime: when, triggered: true });
+
+await t('le partite viste restano in attesa finche non sono finite', async () => {
+  const { registry } = await updateResults(null, feed(partita('1', 'Lecce', 'Inter Milan', '2026-09-05T18:45:00Z')), ORA,
+    { fetchFixtures: async () => { throw new Error('non deve essere chiamata'); } });
+  eq(Object.keys(registry.pending), ['1']);
+  eq(Object.keys(registry.results), []);
+});
+
+await t('finita la partita, il risultato viene recuperato e salvato con lo stesso id', async () => {
+  const { registry, resolved } = await updateResults(null,
+    feed(partita('abc123', 'Lecce', 'Inter Milan', '2026-08-31T06:00:00Z')), ORA,
+    { fetchFixtures: async () => [fx('Lecce', 'Internazionale', '2026-08-31T06:00Z', 1, 3)] });
+  eq(resolved, 1);
+  eq(registry.results['abc123'].outcomeAway, 'win');
+  eq(registry.results['abc123'].awayScore, 3);
+  eq(Object.keys(registry.pending), [], 'risolta, esce dall attesa:');
+});
+
+await t('non si interroga la fonte se non c e niente da risolvere', async () => {
+  let chiamate = 0;
+  await updateResults(null, feed(partita('1', 'A', 'B', '2026-09-20T18:00:00Z')), ORA,
+    { fetchFixtures: async () => { chiamate++; return []; } });
+  eq(chiamate, 0);
+});
+
+await t('non si cerca il risultato di una partita appena iniziata', async () => {
+  let chiamate = 0;
+  // Iniziata da un'ora: e' ancora in corso.
+  await updateResults(null, feed(partita('1', 'A', 'B', '2026-08-31T11:00:00Z')), ORA,
+    { fetchFixtures: async () => { chiamate++; return []; } });
+  eq(chiamate, 0);
+});
+
+await t('una partita non abbinata resta in attesa e viene segnalata', async () => {
+  const { registry, resolved } = await updateResults(null,
+    feed(partita('1', 'Squadra Ignota', 'Altra Ignota', '2026-08-31T06:00:00Z')), ORA,
+    { fetchFixtures: async () => [fx('Lecce', 'Roma', '2026-08-31T06:00Z', 1, 0)] });
+  eq(resolved, 0);
+  eq(Object.keys(registry.pending), ['1'], 'resta in attesa:');
+  eq(registry.unmatched.length, 1, 'e viene segnalata:');
+});
+
+await t('se la fonte risultati e irraggiungibile non si perde nulla', async () => {
+  const { registry, resolved, errors } = await updateResults(null,
+    feed(partita('1', 'Lecce', 'Inter Milan', '2026-08-31T06:00:00Z')), ORA,
+    { fetchFixtures: async () => { throw new Error('rete giu'); } });
+  eq(resolved, 0);
+  eq(errors.length, 1);
+  eq(Object.keys(registry.pending), ['1'], 'la partita resta in attesa per il prossimo giro:');
+});
+
+await t('dopo dieci giorni senza risultato si smette di cercare', async () => {
+  const vecchia = { pending: { '1': { leagueKey: 'soccer_italy_serie_a', league: 'Serie A',
+    home: 'A', away: 'B', commenceTime: '2026-08-01T18:00:00Z' } }, results: {} };
+  const { registry } = await updateResults(vecchia, { leagues: [] }, ORA,
+    { fetchFixtures: async () => [] });
+  eq(Object.keys(registry.pending), []);
+});
+
+// --- compilazione automatica nel tracker -------------------------------------
+
+const registro = { results: {
+  vinta: { home: 'Lecce', away: 'Inter', commenceTime: '2026-08-30T18:00:00Z', homeScore: 1, awayScore: 3, status: 'full_time', outcomeAway: 'win' },
+  persa: { home: 'Roma', away: 'Como', commenceTime: '2026-08-30T18:00:00Z', homeScore: 2, awayScore: 0, status: 'full_time', outcomeAway: 'lose' },
+} };
+
+await t('l esito si compila da solo e porta con se il punteggio', async () => {
+  const { rows, filled } = applyResults([{ id: 'vinta', result: null, stake: 10, odds: 1.75 }], registro);
+  eq(filled.length, 1);
+  eq(rows[0].result, 'win');
+  eq(rows[0].resultAuto, true, 'va marcato come automatico:');
+  eq(rows[0].score, { home: 1, away: 3, status: 'full_time' });
+  eq(rows[0].frozen, true, 'una partita giocata e storia:');
+});
+
+await t('un esito inserito da te non viene MAI sovrascritto', async () => {
+  const { rows, filled } = applyResults(
+    [{ id: 'vinta', result: RESULTS.LOSE, stake: 10, odds: 1.75 }], registro);
+  eq(filled.length, 0);
+  eq(rows[0].result, RESULTS.LOSE, 'resta quello che hai messo tu:');
+  ok(!rows[0].resultAuto, 'e non deve risultare automatico');
+  eq(rows[0].score, { home: 1, away: 3, status: 'full_time' }, 'il punteggio si mostra comunque:');
+});
+
+await t('le partite senza risultato disponibile restano intatte', async () => {
+  const { rows, filled } = applyResults([{ id: 'sconosciuta', result: null }], registro);
+  eq(filled.length, 0);
+  eq(rows[0].result, null);
+});
+
+await t('dopo la compilazione il profitto e calcolato', async () => {
+  const { rows } = applyResults([{ id: 'vinta', result: null, stake: 10, odds: 1.75 }], registro);
+  eq(profitLoss(rows[0]), 7.5);
+  const { rows: r2 } = applyResults([{ id: 'persa', result: null, stake: 10, odds: 1.60 }], registro);
+  eq(profitLoss(r2[0]), -10);
+});
+
+await t('compilare due volte non cambia nulla', async () => {
+  const uno = applyResults([{ id: 'vinta', result: null, stake: 10, odds: 1.75 }], registro);
+  const due = applyResults(uno.rows, registro);
+  eq(due.filled.length, 0, 'la seconda volta non deve ricompilare niente:');
+  eq(due.rows[0].result, 'win');
+});
+
+document.getElementById('out').textContent =
+  log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
+</script>

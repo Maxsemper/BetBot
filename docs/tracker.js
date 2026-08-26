@@ -10,10 +10,17 @@
 import {
   STORAGE_KEY, SCHEMA_VERSION, RESULTS,
   syncWithSignals, profitLoss, summarize, summarizeByLeague,
-  isLocked, isPlayed, toCsv, parseBackup, newRow,
+  isLocked, isPlayed, toCsv, parseBackup, newRow, applyResults,
 } from './tracker-core.js';
 
 const state = { rows: [], hidden: new Set(), onlyPlayed: false, hideSettled: false };
+
+// Spiegazione del punteggio mostrato accanto alla partita.
+const SCORE_TITLE = {
+  full_time: 'Risultato finale',
+  postponed: 'Partita rinviata',
+  canceled: 'Partita annullata',
+};
 
 const $ = sel => document.querySelector(sel);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -59,20 +66,45 @@ function warnStorage(msg) {
 
 // --- Ciclo principale --------------------------------------------------------
 
+async function fetchJson(path) {
+  try {
+    const res = await fetch(path + '?t=' + Date.now());
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null; // si prosegue con il solo storico locale
+  }
+}
+
+/** Avvisa quali esiti sono stati compilati da soli, senza interrompere nulla. */
+function notifyFilled(n) {
+  const el = $('#autoNote');
+  el.hidden = false;
+  el.textContent = n === 1
+    ? '1 esito compilato automaticamente dai risultati delle partite. Puoi correggerlo se non torna.'
+    : `${n} esiti compilati automaticamente dai risultati delle partite. Puoi correggerli se non tornano.`;
+}
+
 async function init() {
   state.rows = load();
 
-  let data = null;
-  try {
-    const res = await fetch('data/odds.json?t=' + Date.now());
-    if (res.ok) data = await res.json();
-  } catch { /* si prosegue con il solo storico locale */ }
+  const [data, results] = await Promise.all([
+    fetchJson('data/odds.json'),
+    fetchJson('data/results.json'),
+  ]);
 
   if (data) {
-    const { rows } = syncWithSignals(state.rows, data);
-    state.rows = rows;
-    save();
+    state.rows = syncWithSignals(state.rows, data).rows;
   }
+
+  // Gli esiti delle partite giocate arrivano da soli. Va fatto dopo il sync,
+  // perche' il sync congela le righe iniziate e questo le compila.
+  if (results) {
+    const { rows, filled } = applyResults(state.rows, results);
+    state.rows = rows;
+    if (filled.length) notifyFilled(filled.length);
+  }
+
+  if (data || results) save();
 
   renderFilters(data);
   render();
@@ -206,6 +238,7 @@ function renderRow(row) {
     <td class="c-match">
       <span class="lg">${esc(row.league)}</span>
       ${esc(row.home)} – <b>${esc(row.away)}</b>
+      ${row.score ? `<span class="score" title="${esc(SCORE_TITLE[row.score.status] ?? 'Risultato finale')}">${row.score.home}–${row.score.away}</span>` : ''}
       ${row.signalOdds ? `<span class="hint" title="Quota minima di mercato al momento del segnale">segnale ${row.signalOdds.toFixed(2)}</span>` : ''}
       ${row.source === 'manual' ? '<span class="hint">manuale</span>' : ''}
     </td>
@@ -217,6 +250,7 @@ function renderRow(row) {
         <option value="${RESULTS.LOSE}">Persa</option>
         <option value="${RESULTS.VOID}">Annullata</option>
       </select>
+      ${row.resultAuto ? '<span class="auto-tag" title="Compilato dal risultato della partita. Modificalo se non torna.">auto</span>' : ''}
     </td>
     <td class="c-num"><input class="f-odds" type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Quota"></td>
     <td class="c-num"><input class="f-stake" type="number" step="0.5" min="0" inputmode="decimal" aria-label="Stake in euro"></td>
@@ -247,7 +281,9 @@ function renderRow(row) {
     commit();
   };
 
-  fResult.onchange = () => update({ result: fResult.value || null });
+  // Correggere a mano un esito automatico ne toglie la marcatura: da quel
+  // momento e' un dato tuo.
+  fResult.onchange = () => update({ result: fResult.value || null, resultAuto: false });
   fOdds.onchange = () => update({ odds: parseNum(fOdds.value) });
   fStake.onchange = () => update({ stake: parseNum(fStake.value) });
   fNotes.onchange = () => update({ notes: fNotes.value });

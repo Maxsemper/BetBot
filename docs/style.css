@@ -255,3 +255,16 @@ dialog button.primary { background: var(--accent); border-color: var(--accent); 
 .table-wrap { overflow-x: auto; }
 .table-wrap .tracker { min-width: 780px; }
 .table-wrap .by-league { min-width: 460px; }
+
+/* Avviso degli esiti compilati da soli, e marcatura delle righe automatiche. */
+.auto-note {
+  margin: 0; padding: 10px 20px; font-size: 13px; color: var(--text);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.tracker .score {
+  font-variant-numeric: tabular-nums; font-weight: 650;
+  margin-left: 8px; padding: 1px 6px; border-radius: 4px;
+  background: var(--panel-2); border: 1px solid var(--line);
+}
+.tracker .auto-tag { color: var(--accent); font-size: 11px; margin-left: 6px; cursor: help; }

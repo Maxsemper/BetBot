@@ -109,6 +109,41 @@ export function syncWithSignals(rows, data, now = new Date()) {
   return { rows: out, added, removed, frozen };
 }
 
+/**
+ * Compila da sola l'esito delle partite ormai giocate, leggendo il registro
+ * dei risultati prodotto dal job.
+ *
+ * Non sovrascrive MAI un esito che hai messo tu: se una riga ha gia' un esito,
+ * viene lasciata stare. Quelli compilati in automatico restano marcati, cosi'
+ * si distinguono a colpo d'occhio e puoi comunque correggerli.
+ *
+ * @returns {{rows: Array, filled: Array}}
+ */
+export function applyResults(rows, registry) {
+  const results = registry?.results ?? {};
+  const filled = [];
+
+  const out = rows.map(row => {
+    const res = results[row.id];
+    if (!res || !res.outcomeAway) return row;
+
+    // Il punteggio si mostra comunque, anche su righe compilate a mano.
+    const conPunteggio = {
+      ...row,
+      score: Number.isFinite(res.homeScore) && Number.isFinite(res.awayScore)
+        ? { home: res.homeScore, away: res.awayScore, status: res.status }
+        : row.score ?? null,
+    };
+
+    if (row.result) return conPunteggio; // esito gia' presente: non si tocca
+
+    filled.push(row);
+    return { ...conPunteggio, result: res.outcomeAway, resultAuto: true, frozen: true };
+  });
+
+  return { rows: out, filled };
+}
+
 /** Profitto o perdita in euro. null se la scommessa non e' ancora conclusa. */
 export function profitLoss(row) {
   const stake = num(row.stake);

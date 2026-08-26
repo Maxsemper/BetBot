@@ -10,6 +10,7 @@ import { dirname } from 'node:path';
 import { CONFIG } from './config.mjs';
 import { annotate, collectTriggered, diffAgainstState } from './rules.mjs';
 import { appendSamples, attachTrends } from './history.mjs';
+import { updateResults } from './results.mjs';
 // >>> Per cambiare sorgente quote, sostituisci solo questa riga. <<<
 import { fetchOdds, NAME as PROVIDER } from './providers/the-odds-api.mjs';
 import { sendTelegram, buildMessage } from './alerts/telegram.mjs';
@@ -59,6 +60,15 @@ async function main() {
     await sendTelegram(buildMessage(fresh, config.threshold, process.env.PAGE_URL ?? ''));
   }
 
+  // Risultati delle partite ormai giocate. Fonte gratuita e separata da quella
+  // delle quote: non consuma crediti. Un suo guasto non deve far fallire il giro.
+  const { registry, resolved, errors: resultErrors } = await updateResults(
+    await readJson(config.paths.results, null), data);
+  console.log(`Risultati: ${resolved} nuovi · ${Object.keys(registry.pending).length} in attesa`
+    + (registry.unmatched.length ? ` · ${registry.unmatched.length} non abbinate` : ''));
+  for (const u of registry.unmatched) console.warn(`  non abbinata: ${u}`);
+  for (const e of resultErrors) console.warn(`  fonte risultati non raggiungibile — ${e}`);
+
   const alertHistory = await readJson(config.paths.alerts, { items: [] });
   const items = [
     ...fresh.map(a => ({ ...a, notifiedAt: new Date().toISOString() })),
@@ -73,6 +83,7 @@ async function main() {
   await writeJson(config.paths.alerts, { updatedAt: new Date().toISOString(), items });
   await writeJson(config.paths.state, { updatedAt: new Date().toISOString(), active: nextActive });
   await writeJson(config.paths.history, history, { pretty: false });
+  await writeJson(config.paths.results, registry, { pretty: false });
 
   if (data.errors.length) {
     console.error(`Completato con ${data.errors.length} errore/i:\n - ${data.errors.join('\n - ')}`);
