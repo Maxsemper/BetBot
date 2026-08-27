@@ -32,6 +32,23 @@ const ALIAS = new Map(Object.entries({
   'deportivo la coruna': 'deportivo',
   'athletic bilbao': 'athletic',
   'athletic': 'athletic',
+
+  // Nomi italiani: le partite che aggiungi a mano le scrivi come le diresti,
+  // ma i feed usano il nome originale. Senza queste voci "Barcellona" non
+  // troverebbe mai "Barcelona".
+  'barcellona': 'barcelona',
+  'siviglia': 'sevilla',
+  'saragozza': 'zaragoza',
+  'bilbao': 'athletic',
+  'lilla': 'lille',
+  'marsiglia': 'marseille',
+  'lione': 'lyon',
+  'nizza': 'nice',
+  'strasburgo': 'strasbourg',
+  'tolosa': 'toulouse',
+  'juve': 'juventus',
+  // "PSG" si': "Parigi" no, perche' in Ligue 1 c'e' anche il Paris FC.
+  'psg': 'paris saint germain',
 }));
 
 /** Nome -> elenco di parole significative, minuscole e senza accenti. */

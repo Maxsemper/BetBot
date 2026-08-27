@@ -230,6 +230,11 @@ che il monitor esistesse**: il job tiene da parte 45 giorni di risultati conclus
 (`recent` in `results.json`) proprio per poterle ritrovare per nome e data, visto
 che non hanno un id nostro. L'esito si compila da solo anche per quelle.
 
+I nomi puoi scriverli **in italiano**: `Barcellona`, `Siviglia`, `Lilla`, `Marsiglia`,
+`Lione`, `Nizza`, `Juve`, `PSG` abbinano i nomi originali dei feed. `Parigi` no,
+di proposito: in Ligue 1 ci sono sia il Paris Saint-Germain sia il Paris FC, e
+tradurlo significherebbe scegliere al posto tuo.
+
 ### Il grafico dell'andamento
 
 Accanto alle statistiche c'è la **curva del profitto cumulato**: non dove sei, ma
@@ -375,8 +380,8 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-122 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
-`tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (31, risultati
+127 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
+`tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (36, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 

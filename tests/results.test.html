@@ -305,6 +305,58 @@ await t('l id ha la precedenza sul nome', async () => {
     commenceTime: '2026-08-23T19:30:00Z', stake: 10, odds: 1.40, result: null }], reg);
   eq(rows[0].result, 'lose', 'vince il risultato trovato per id:');
 });
+
+await t('i nomi italiani abbinano quelli originali dei feed', async () => {
+  // Le partite aggiunte a mano si scrivono come si direbbero a voce.
+  ok(sameTeam('Barcellona', 'Barcelona'));
+  ok(sameTeam('Siviglia', 'Sevilla'));
+  ok(sameTeam('Lilla', 'Lille'));
+  ok(sameTeam('Marsiglia', 'Marseille'));
+  ok(sameTeam('Lione', 'Olympique Lyonnais'));
+  ok(sameTeam('Nizza', 'Nice'));
+  ok(sameTeam('Strasburgo', 'Strasbourg'));
+  ok(sameTeam('Tolosa', 'Toulouse'));
+  ok(sameTeam('Bilbao', 'Athletic Club'));
+});
+
+await t('le abbreviazioni di uso comune abbinano', async () => {
+  ok(sameTeam('Juve', 'Juventus'));
+  ok(sameTeam('PSG', 'Paris Saint-Germain'));
+  ok(sameTeam('Inter', 'Internazionale'));
+  ok(sameTeam('Milan', 'AC Milan'));
+  ok(sameTeam('Roma', 'AS Roma'));
+});
+
+await t('"Parigi" resta ambiguo e non abbina', async () => {
+  // In Ligue 1 ci sono sia il Paris Saint-Germain sia il Paris FC: tradurre
+  // "Parigi" significherebbe scegliere per conto dell utente. Meglio non
+  // abbinare e lasciargli compilare l esito.
+  ok(!sameTeam('Parigi', 'Paris Saint-Germain'));
+  ok(!sameTeam('Parigi', 'Paris FC'));
+});
+
+await t('gli alias italiani non confondono squadre diverse', async () => {
+  ok(!sameTeam('Siviglia', 'Barcelona'));
+  ok(!sameTeam('Lilla', 'Lyon'));
+  ok(!sameTeam('Juve', 'Juve Stabia'), 'nomi che iniziano uguale restano distinti');
+});
+
+await t('caso reale: le due partite gia giocate si ritrovano', async () => {
+  const recent = [
+    { league: 'La Liga', home: 'Espanyol', away: 'Real Madrid', commenceTime: '2026-08-22T19:30:00Z',
+      homeScore: 1, awayScore: 2, status: 'full_time', outcomeAway: 'win' },
+    { league: 'La Liga', home: 'Elche', away: 'Barcelona', commenceTime: '2026-08-23T19:30:00Z',
+      homeScore: 0, awayScore: 5, status: 'full_time', outcomeAway: 'win' },
+  ];
+  const righe = [
+    { id: 'man_1', home: 'Espanyol', away: 'Real Madrid', commenceTime: '2026-08-22T19:30:00Z', stake: 10, odds: 1.6, result: null },
+    { id: 'man_2', home: 'Elche', away: 'Barcellona', commenceTime: '2026-08-23T19:30:00Z', stake: 10, odds: 1.4, result: null },
+  ];
+  const { rows, filled } = applyResults(righe, { results: {}, recent });
+  eq(filled.length, 2, 'entrambe devono compilarsi:');
+  eq(rows.map(r => r.result), ['win', 'win']);
+  eq(rows[1].score, { home: 0, away: 5, status: 'full_time' }, 'anche scritta all italiana:');
+});
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>
