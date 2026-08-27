@@ -21,6 +21,18 @@ const RESA_MS = 10 * 24 * 60 * 60 * 1000;
 // Per quanto si conservano i risultati risolti.
 const CONSERVA_MS = 180 * 24 * 60 * 60 * 1000;
 
+// Finestra di partite concluse conservata per nome squadra invece che per id.
+// Serve alle righe aggiunte a mano nel tracker: partite giocate prima che il
+// monitor esistesse, o che il feed quote non aveva, non hanno un id nostro e
+// possono essere ritrovate solo per nome e data.
+const RECENTI_MS = 45 * 24 * 60 * 60 * 1000;
+
+const LEAGUE_LABELS = {
+  soccer_italy_serie_a: 'Serie A',
+  soccer_spain_la_liga: 'La Liga',
+  soccer_france_ligue_one: 'Ligue 1',
+};
+
 const GIORNO = 24 * 60 * 60 * 1000;
 
 /** Registra nel pending ogni partita vista nel feed, per poterla ritrovare dopo. */
@@ -43,9 +55,13 @@ function trackPending(pending, data) {
 /**
  * Aggiorna il registro dei risultati.
  *
- * Interroga la fonte solo per i campionati che hanno partite finite e ancora
- * senza punteggio: nei giri in cui non c'e' niente da risolvere non fa
- * nessuna chiamata di rete.
+ * Una chiamata per campionato a ogni giro — la fonte e' gratuita e senza
+ * chiave, quindi il costo e' solo di rete. La finestra copre insieme le partite
+ * da risolvere e le concluse recenti, che finiscono in `recent` per poter
+ * essere ritrovate per nome dalle righe aggiunte a mano nel tracker.
+ *
+ * Se la fonte non risponde, le partite restano in attesa e si riprova al giro
+ * dopo: il giro delle quote non deve fallire per questo.
  */
 export async function updateResults(previous, data, now = new Date(), deps = {}) {
   const fetchLeague = deps.fetchFixtures ?? fetchFixtures;
@@ -69,10 +85,15 @@ export async function updateResults(previous, data, now = new Date(), deps = {})
     dueByLeague.get(p.leagueKey).push({ id, ...p });
   }
 
-  for (const [leagueKey, matches] of dueByLeague) {
+  const recent = [];
+
+  // Una chiamata per campionato, con una finestra che copre sia le partite da
+  // risolvere sia le concluse recenti da tenere da parte per nome.
+  for (const leagueKey of Object.keys(LEAGUE_CODES)) {
+    const matches = dueByLeague.get(leagueKey) ?? [];
     const times = matches.map(m => Date.parse(m.commenceTime));
-    const from = new Date(Math.min(...times) - GIORNO);
-    const to = new Date(Math.max(...times) + GIORNO);
+    const from = new Date(Math.min(t - RECENTI_MS, ...times.map(x => x - GIORNO)));
+    const to = new Date(Math.max(t + GIORNO, ...times.map(x => x + GIORNO)));
 
     let fixtures;
     try {
@@ -107,6 +128,28 @@ export async function updateResults(previous, data, now = new Date(), deps = {})
       delete pending[m.id];
       resolved++;
     }
+
+    // Le concluse che NON hanno un risultato per id: sono quelle che il feed
+    // quote non ha mai visto. Man mano che il monitor accumula storia questa
+    // lista si svuota da sola, perche' le nuove partite arrivano con il loro id.
+    const perId = Object.values(results);
+    const etichetta = LEAGUE_LABELS[leagueKey] ?? leagueKey;
+    for (const f of fixtures) {
+      if (!f.completed) continue;
+      const esito = outcomeForAway(f);
+      if (!esito) continue;
+      if (findFixture(f, perId)) continue;
+      recent.push({
+        league: etichetta,
+        home: f.home,
+        away: f.away,
+        commenceTime: f.commenceTime,
+        homeScore: Number.isFinite(f.homeScore) ? f.homeScore : null,
+        awayScore: Number.isFinite(f.awayScore) ? f.awayScore : null,
+        status: f.status,
+        outcomeAway: esito,
+      });
+    }
   }
 
   for (const [id, r] of Object.entries(results)) {
@@ -118,6 +161,7 @@ export async function updateResults(previous, data, now = new Date(), deps = {})
       updatedAt: now.toISOString(),
       source: NAME,
       results,
+      recent,
       pending,
       unmatched,
     },

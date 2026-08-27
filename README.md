@@ -225,7 +225,10 @@ fermo, ed è un termine di paragone poco solido. È la stessa ragione per cui la
 [tendenza della quota](#tendenza-della-quota) usa la media.
 
 Puoi aggiungere partite a mano con **+ Aggiungi partita**, anche di campionati o
-incontri che il monitor non ha segnalato.
+incontri che il monitor non ha segnalato — comprese partite **gia' giocate prima
+che il monitor esistesse**: il job tiene da parte 45 giorni di risultati conclusi
+(`recent` in `results.json`) proprio per poterle ritrovare per nome e data, visto
+che non hanno un id nostro. L'esito si compila da solo anche per quelle.
 
 ### Il grafico dell'andamento
 
@@ -372,8 +375,8 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-114 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
-`tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (23, risultati
+122 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
+`tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (31, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 

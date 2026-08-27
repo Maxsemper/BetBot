@@ -2,6 +2,8 @@
 // una riga entra, resta o esce, e come si calcolano profitti e statistiche.
 // Tenuta separata da tracker.js apposta, cosi' e' testabile.
 
+import { findFixture } from './team-match.js';
+
 export const SCHEMA_VERSION = 1;
 export const STORAGE_KEY = 'betbot.tracker.v1';
 
@@ -132,10 +134,14 @@ export function syncWithSignals(rows, data, now = new Date()) {
  */
 export function applyResults(rows, registry) {
   const results = registry?.results ?? {};
+  // Partite concluse senza un id nostro: quelle giocate prima che il monitor
+  // esistesse, o che il feed quote non aveva. Sono le uniche che una riga
+  // aggiunta a mano puo' sperare di ritrovare, e si cercano per nome e data.
+  const recent = registry?.recent ?? [];
   const filled = [];
 
   const out = rows.map(row => {
-    const res = results[row.id];
+    const res = results[row.id] ?? (recent.length ? findFixture(row, recent) : null);
     if (!res || !res.outcomeAway) return row;
 
     // Il punteggio si mostra comunque, anche su righe compilate a mano.

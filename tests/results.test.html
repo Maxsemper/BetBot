@@ -15,6 +15,9 @@ function eq(a, b, msg) {
   if (A !== B) throw new Error((msg ?? '') + ' atteso ' + B + ', ottenuto ' + A);
 }
 function ok(v, msg) { if (!v) throw new Error(msg ?? 'atteso true'); }
+function close(a, b, msg) {
+  if (Math.abs(a - b) > 1e-9) throw new Error((msg ?? '') + ' atteso ' + b + ', ottenuto ' + a);
+}
 
 // --- abbinamento dei nomi ----------------------------------------------------
 // Le coppie qui sotto sono TUTTE osservate sui feed reali, non inventate.
@@ -111,7 +114,7 @@ const partita = (id, home, away, when) => ({ id, home, away, commenceTime: when,
 
 await t('le partite viste restano in attesa finche non sono finite', async () => {
   const { registry } = await updateResults(null, feed(partita('1', 'Lecce', 'Inter Milan', '2026-09-05T18:45:00Z')), ORA,
-    { fetchFixtures: async () => { throw new Error('non deve essere chiamata'); } });
+    { fetchFixtures: async () => [] });
   eq(Object.keys(registry.pending), ['1']);
   eq(Object.keys(registry.results), []);
 });
@@ -126,19 +129,22 @@ await t('finita la partita, il risultato viene recuperato e salvato con lo stess
   eq(Object.keys(registry.pending), [], 'risolta, esce dall attesa:');
 });
 
-await t('non si interroga la fonte se non c e niente da risolvere', async () => {
-  let chiamate = 0;
+await t('una chiamata per campionato a ogni giro, anche senza partite da risolvere', async () => {
+  // Il comportamento e' cambiato apposta: la finestra serve anche a raccogliere
+  // le concluse recenti per le righe aggiunte a mano. La fonte e' gratuita.
+  const chiamate = [];
   await updateResults(null, feed(partita('1', 'A', 'B', '2026-09-20T18:00:00Z')), ORA,
-    { fetchFixtures: async () => { chiamate++; return []; } });
-  eq(chiamate, 0);
+    { fetchFixtures: async k => { chiamate.push(k); return []; } });
+  eq(chiamate.length, 3, 'una per campionato:');
 });
 
-await t('non si cerca il risultato di una partita appena iniziata', async () => {
-  let chiamate = 0;
-  // Iniziata da un'ora: e' ancora in corso.
-  await updateResults(null, feed(partita('1', 'A', 'B', '2026-08-31T11:00:00Z')), ORA,
-    { fetchFixtures: async () => { chiamate++; return []; } });
-  eq(chiamate, 0);
+await t('una partita appena iniziata non viene risolta', async () => {
+  // Iniziata da un'ora: e' ancora in corso, il punteggio non e' definitivo.
+  const { registry, resolved } = await updateResults(null,
+    feed(partita('1', 'Lecce', 'Inter Milan', '2026-08-31T11:00:00Z')), ORA,
+    { fetchFixtures: async () => [fx('Lecce', 'Internazionale', '2026-08-31T11:00Z', 1, 0, 'scheduled')] });
+  eq(resolved, 0);
+  eq(Object.keys(registry.pending), ['1'], 'resta in attesa:');
 });
 
 await t('una partita non abbinata resta in attesa e viene segnalata', async () => {
@@ -155,7 +161,7 @@ await t('se la fonte risultati e irraggiungibile non si perde nulla', async () =
     feed(partita('1', 'Lecce', 'Inter Milan', '2026-08-31T06:00:00Z')), ORA,
     { fetchFixtures: async () => { throw new Error('rete giu'); } });
   eq(resolved, 0);
-  eq(errors.length, 1);
+  eq(errors.length, 3, 'un errore per campionato interrogato:');
   eq(Object.keys(registry.pending), ['1'], 'la partita resta in attesa per il prossimo giro:');
 });
 
@@ -212,6 +218,93 @@ await t('compilare due volte non cambia nulla', async () => {
   eq(due.rows[0].result, 'win');
 });
 
+
+// --- partite vecchie, senza un id nostro -------------------------------------
+// Sono quelle giocate prima che il monitor esistesse: si ritrovano solo per
+// nome e data, ed e' l'unico modo per dare un esito alle righe aggiunte a mano.
+
+await t('le concluse senza id nostro finiscono in recent', async () => {
+  const { registry } = await updateResults(null, feed(), ORA, {
+    fetchFixtures: async k => (k === 'soccer_spain_la_liga'
+      ? [fx('Elche', 'Barcelona', '2026-08-23T19:30Z', 0, 5)] : []),
+  });
+  eq(registry.recent.length, 1);
+  eq(registry.recent[0].away, 'Barcelona');
+  eq(registry.recent[0].outcomeAway, 'win');
+  eq(registry.recent[0].league, 'La Liga', 'con l etichetta leggibile del campionato:');
+});
+
+await t('una partita gia risolta per id non viene duplicata in recent', async () => {
+  const { registry } = await updateResults(null,
+    feed(partita('abc', 'Lecce', 'Inter Milan', '2026-08-31T06:00:00Z')), ORA,
+    { fetchFixtures: async k => (k === 'soccer_italy_serie_a'
+      ? [fx('Lecce', 'Internazionale', '2026-08-31T06:00Z', 1, 3)] : []) });
+  eq(Object.keys(registry.results), ['abc']);
+  eq(registry.recent.length, 0, 'gia coperta per id:');
+});
+
+await t('le partite non ancora concluse non finiscono in recent', async () => {
+  const { registry } = await updateResults(null, feed(), ORA, {
+    fetchFixtures: async () => [fx('A', 'B', '2026-09-10T18:00Z', 0, 0, 'scheduled')],
+  });
+  eq(registry.recent.length, 0);
+});
+
+const registroRecent = { results: {}, recent: [
+  { league: 'La Liga', home: 'Elche', away: 'Barcelona', commenceTime: '2026-08-23T19:30:00Z',
+    homeScore: 0, awayScore: 5, status: 'full_time', outcomeAway: 'win' },
+  { league: 'La Liga', home: 'Espanyol', away: 'Real Madrid', commenceTime: '2026-08-16T19:30:00Z',
+    homeScore: 1, awayScore: 2, status: 'full_time', outcomeAway: 'win' },
+] };
+
+await t('una riga aggiunta a mano trova il suo esito per nome', async () => {
+  const { rows, filled } = applyResults([{
+    id: 'man_abc', league: 'La Liga', home: 'Elche CF', away: 'Barcelona',
+    commenceTime: '2026-08-23T19:30:00Z', stake: 10, odds: 1.40, result: null,
+  }], registroRecent);
+  eq(filled.length, 1);
+  eq(rows[0].result, 'win');
+  eq(rows[0].resultAuto, true);
+  eq(rows[0].score, { home: 0, away: 5, status: 'full_time' });
+  close(profitLoss(rows[0]), 4, 'profitto: 10 x (1.40 - 1)');
+});
+
+await t('anche con nomi scritti diversamente', async () => {
+  const { rows } = applyResults([{
+    id: 'man_x', league: 'La Liga', home: 'RCD Espanyol', away: 'Real Madrid',
+    commenceTime: '2026-08-16T21:30:00Z', stake: 10, odds: 1.60, result: null,
+  }], registroRecent);
+  eq(rows[0].result, 'win', 'sigla e due ore di scarto non devono impedire l abbinamento:');
+});
+
+await t('una riga a mano su una partita sconosciuta resta da compilare', async () => {
+  const { rows, filled } = applyResults([{
+    id: 'man_y', league: 'Serie A', home: 'Squadra', away: 'Ignota',
+    commenceTime: '2026-08-23T19:30:00Z', stake: 10, odds: 1.50, result: null,
+  }], registroRecent);
+  eq(filled.length, 0);
+  eq(rows[0].result, null);
+});
+
+await t('il nome non deve poter scavalcare un esito che hai messo tu', async () => {
+  const { rows, filled } = applyResults([{
+    id: 'man_abc', league: 'La Liga', home: 'Elche CF', away: 'Barcelona',
+    commenceTime: '2026-08-23T19:30:00Z', stake: 10, odds: 1.40, result: RESULTS.LOSE,
+  }], registroRecent);
+  eq(filled.length, 0);
+  eq(rows[0].result, RESULTS.LOSE, 'resta quello inserito:');
+});
+
+await t('l id ha la precedenza sul nome', async () => {
+  const reg = {
+    results: { man_abc: { home: 'Elche', away: 'Barcelona', commenceTime: '2026-08-23T19:30:00Z',
+      homeScore: 1, awayScore: 1, status: 'full_time', outcomeAway: 'lose' } },
+    recent: registroRecent.recent,
+  };
+  const { rows } = applyResults([{ id: 'man_abc', home: 'Elche CF', away: 'Barcelona',
+    commenceTime: '2026-08-23T19:30:00Z', stake: 10, odds: 1.40, result: null }], reg);
+  eq(rows[0].result, 'lose', 'vince il risultato trovato per id:');
+});
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>
