@@ -86,6 +86,7 @@ scripts/alerts/telegram.mjs     costruzione e invio del messaggio
 scripts/fetch-odds.mjs          orchestratore
 docs/index.html                 pagina Segnali: partite e quote sotto soglia
 docs/tracker.html + tracker*.js pagina Tracker: registro reale delle giocate
+docs/equity-chart.js            grafico della curva del profitto (SVG, zero librerie)
 docs/data/*.json                output del job: quote, storico alert, stato dedup
 tests/*.test.html               test della logica, si aprono nel browser
 ```
@@ -226,6 +227,32 @@ fermo, ed è un termine di paragone poco solido. È la stessa ragione per cui la
 Puoi aggiungere partite a mano con **+ Aggiungi partita**, anche di campionati o
 incontri che il monitor non ha segnalato.
 
+### Il grafico dell'andamento
+
+Accanto alle statistiche c'è la **curva del profitto cumulato**: non dove sei, ma
+come ci sei arrivato. Le statistiche in cima dicono il saldo; la curva dice se ci sei
+arrivato dritto o dopo una striscia negativa — che per una strategia è
+l'informazione più utile delle due.
+
+Scelte di lettura:
+
+- **L'asse include sempre lo zero** e la linea del pareggio è disegnata. Senza,
+  una curva tutta in utile sembrerebbe partire da sotto e il confronto con il
+  pareggio — il punto del grafico — si perderebbe.
+- **L'area è colorata rispetto allo zero**, non al fondo del grafico: verde sopra,
+  rossa sotto, così il riempimento misura la distanza dal pareggio. Il segno è già
+  leggibile dalla posizione, quindi il colore non è l'unico indizio.
+- **Ordine per data della partita**, non di inserimento: la curva racconta la
+  cronologia reale.
+- **Solo giocate concluse.** Una scommessa aperta non ha ancora spostato niente, e
+  disegnarla come uno zero falserebbe la linea.
+- Un solo valore è etichettato, quello finale. Gli altri si leggono passando il
+  mouse (o con le frecce da tastiera, `Home` / `End` / `Esc`), e tutti sono comunque
+  nella tabella qui sotto: il tooltip aggiunge, non nasconde.
+
+Nessuna libreria: è SVG generato dalla pagina, ridisegnato alla larghezza reale del
+contenitore invece che scalato — scalare deformerebbe spessori e testo.
+
 ### Il P/L si può correggere a mano (cashout)
 
 Di norma il profitto è calcolato: `stake × (quota − 1)` se vinta, `−stake` se persa.
@@ -345,8 +372,8 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-105 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
-`tests/tracker.test.html` (45, tracker) e `tests/results.test.html` (23, risultati
+114 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
+`tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (23, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 

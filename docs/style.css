@@ -283,3 +283,74 @@ dialog button.primary { background: var(--accent); border-color: var(--accent); 
 .pl-note {
   margin: 0; padding: 8px 20px 12px; font-size: 12px; color: var(--muted);
 }
+
+/* ---------- Riepilogo: statistiche a sinistra, grafico a destra ---------- */
+.overview { border-bottom: 1px solid var(--line); }
+.overview .stats { border-bottom: 0; }
+
+@media (min-width: 1000px) {
+  .overview {
+    display: grid;
+    grid-template-columns: minmax(0, 470px) minmax(0, 1fr);
+    align-items: start;
+  }
+  .overview .stats { border-right: 1px solid var(--line); }
+}
+
+.chart-card { margin: 0; padding: 14px 20px 12px; min-width: 0; }
+.chart-card figcaption {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); font-weight: 600; margin-bottom: 2px;
+}
+.chart-card .cap-sub {
+  display: block; text-transform: none; letter-spacing: 0;
+  font-weight: 400; font-size: 11px; opacity: .8; margin-top: 2px;
+}
+.chart-host { position: relative; min-height: 210px; }
+.chart-empty {
+  color: var(--muted); font-size: 13px; margin: 0; padding: 60px 0;
+  max-width: 42ch; line-height: 1.5;
+}
+
+/* Le linee della griglia sono sottili, continue e un solo passo sopra lo sfondo:
+   il dato e' l'unica cosa che deve farsi notare. */
+.equity { display: block; overflow: visible; }
+.equity:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.equity .grid { stroke: var(--line); stroke-width: 1; }
+.equity .zero { stroke: var(--muted); stroke-width: 1; opacity: .55; }
+.equity .tick, .equity .axis-x {
+  fill: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums;
+}
+.equity .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.equity .line.pos { stroke: var(--hit); }
+.equity .line.neg { stroke: var(--danger); }
+/* Riempimento come velo, non come blocco pieno. */
+.equity .area { stroke: none; }
+.equity .area.pos { fill: var(--hit); opacity: .10; }
+.equity .area.neg { fill: var(--danger); opacity: .10; }
+/* Anello nel colore della superficie: tiene leggibile il punto dove incrocia la linea. */
+.equity .end-ring, .equity .dot-ring { fill: var(--panel); stroke: none; }
+.equity .end.pos, .equity .dot.pos { fill: var(--hit); }
+.equity .end.neg, .equity .dot.neg { fill: var(--danger); }
+.equity .end-label { font-size: 13px; font-weight: 650; }
+.equity .end-label.pos { fill: var(--hit); }
+.equity .end-label.neg { fill: var(--danger); }
+.equity .crosshair { stroke: var(--muted); stroke-width: 1; opacity: .45; }
+.equity .hit { cursor: crosshair; }
+
+.chart-tip {
+  position: absolute; pointer-events: none; z-index: 5;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; font-size: 12px; line-height: 1.45; min-width: 168px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.18);
+}
+.chart-tip .t-when { color: var(--muted); font-size: 11px; }
+.chart-tip .t-match { font-weight: 550; margin-bottom: 5px; }
+.chart-tip .t-row { display: flex; justify-content: space-between; gap: 14px; }
+.chart-tip .t-row span { color: var(--muted); }
+.chart-tip .t-row b { font-variant-numeric: tabular-nums; }
+.chart-tip .pos { color: var(--hit); }
+.chart-tip .neg { color: var(--danger); }
+
+/* Cifre proporzionali sul numero grande: tabular-nums lo farebbe sembrare slegato. */
+.stat.big .v { font-variant-numeric: normal; }

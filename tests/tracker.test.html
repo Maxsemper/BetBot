@@ -3,7 +3,7 @@
 import {
   syncWithSignals, profitLoss, summarize, summarizeByLeague,
   hasUserData, isLocked, isPlayed, toCsv, parseBackup, newRow, RESULTS,
-  computedProfitLoss, hasPlOverride, applyResults,
+  computedProfitLoss, hasPlOverride, applyResults, equityCurve,
 } from '../docs/tracker-core.js';
 
 const log = [];
@@ -396,6 +396,89 @@ t('il CSV segnala le righe con P/L corretto a mano', () => {
   ok(head.includes('P/L manuale'), 'manca la colonna: ' + head);
   ok(conCashout.includes('-2;si;'), 'la riga con cashout deve essere marcata: ' + conCashout);
   ok(normale.includes('8;;'), 'la riga normale no: ' + normale);
+});
+
+// --- curva del profitto cumulato --------------------------------------------
+
+const giocata = (giorno, stake, odds, result, extra = {}) => ({
+  id: 'g' + giorno, league: 'Serie A', home: 'Casa', away: 'Ospite',
+  commenceTime: `2026-09-${String(giorno).padStart(2, '0')}T18:00:00Z`,
+  stake, odds, result, ...extra,
+});
+
+t('la curva somma progressivamente i profitti', () => {
+  const c = equityCurve([
+    giocata(1, 10, 1.75, RESULTS.WIN),   // +7.50 -> 7.50
+    giocata(2, 10, 1.60, RESULTS.LOSE),  // -10   -> -2.50
+    giocata(3, 20, 1.50, RESULTS.WIN),   // +10   ->  7.50
+  ]);
+  eq(c.map(p => p.cum), [7.5, -2.5, 7.5]);
+  eq(c.map(p => p.pl), [7.5, -10, 10]);
+});
+
+t('la curva segue la data della partita, non l ordine di inserimento', () => {
+  const c = equityCurve([
+    giocata(9, 10, 2.00, RESULTS.WIN),   // +10
+    giocata(2, 10, 1.50, RESULTS.LOSE),  // -10
+  ]);
+  eq(c.map(p => p.t.slice(8, 10)), ['02', '09'], 'ordinate per data:');
+  eq(c.map(p => p.cum), [-10, 0]);
+});
+
+t('le scommesse ancora aperte non entrano nella curva', () => {
+  const c = equityCurve([
+    giocata(1, 10, 1.75, RESULTS.WIN),
+    giocata(2, 10, 1.75, null),          // in corso
+    giocata(3, null, 1.75, null),        // nemmeno giocata
+  ]);
+  eq(c.length, 1, 'solo la conclusa:');
+  eq(c[0].cum, 7.5);
+});
+
+t('la curva usa il P/L corretto a mano, non il calcolo', () => {
+  const c = equityCurve([
+    giocata(1, 10, 1.80, RESULTS.WIN, { plOverride: -2 }),  // cashout
+    giocata(2, 10, 1.80, RESULTS.WIN),                       // +8
+  ]);
+  eq(c.map(p => p.pl), [-2, 8]);
+  eq(c.map(p => p.cum), [-2, 6]);
+});
+
+t('un registro senza giocate concluse produce una curva vuota', () => {
+  eq(equityCurve([]), []);
+  eq(equityCurve([giocata(1, 10, 1.75, null)]), []);
+});
+
+t('la curva porta con se cosa serve al tooltip', () => {
+  const [p] = equityCurve([giocata(1, 10, 1.75, RESULTS.WIN)]);
+  eq(p.home, 'Casa'); eq(p.away, 'Ospite');
+  eq(p.league, 'Serie A'); eq(p.result, RESULTS.WIN);
+  eq(p.stake, 10);
+});
+
+t('gli importi sono arrotondati al centesimo', () => {
+  // 10 x (1.333 - 1) = 3.3299999... : non deve arrivare cosi' al grafico.
+  const [p] = equityCurve([giocata(1, 10, 1.333, RESULTS.WIN)]);
+  eq(p.pl, 3.33);
+  eq(p.cum, 3.33);
+});
+
+t('una serie tutta in perdita resta coerente', () => {
+  const c = equityCurve([
+    giocata(1, 10, 1.75, RESULTS.LOSE),
+    giocata(2, 15, 1.75, RESULTS.LOSE),
+  ]);
+  eq(c.map(p => p.cum), [-10, -25]);
+});
+
+t('le annullate compaiono nella curva senza spostarla', () => {
+  const c = equityCurve([
+    giocata(1, 10, 1.75, RESULTS.WIN),
+    giocata(2, 10, 1.75, RESULTS.VOID),
+    giocata(3, 10, 1.75, RESULTS.LOSE),
+  ]);
+  eq(c.map(p => p.cum), [7.5, 7.5, -2.5], 'la annullata lascia il totale dove sta:');
+  eq(c.length, 3, 'ma resta visibile come punto:');
 });
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');

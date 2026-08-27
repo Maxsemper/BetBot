@@ -227,6 +227,38 @@ function media(valori) {
   return valori.length ? valori.reduce((a, b) => a + b, 0) / valori.length : null;
 }
 
+/**
+ * Curva del profitto cumulato: come ci sei arrivato, non solo dove sei.
+ *
+ * Le scommesse sono ordinate per data della partita, non per quando le hai
+ * inserite: la curva deve raccontare la cronologia reale delle giocate.
+ * Entrano solo quelle concluse — una scommessa aperta non ha ancora spostato
+ * niente, e disegnarla come uno zero falserebbe la linea.
+ *
+ * @returns {Array<{t, cum, pl, stake, home, away, league, result}>}
+ */
+export function equityCurve(rows) {
+  const concluse = rows
+    .filter(r => isPlayed(r) && profitLoss(r) !== null)
+    .sort((a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime));
+
+  let cum = 0;
+  return concluse.map(r => {
+    const pl = profitLoss(r);
+    cum += pl;
+    return {
+      t: r.commenceTime,
+      cum: Math.round(cum * 100) / 100,
+      pl: Math.round(pl * 100) / 100,
+      stake: num(r.stake),
+      home: r.home,
+      away: r.away,
+      league: r.league,
+      result: r.result ?? null,
+    };
+  });
+}
+
 /** Statistiche separate per campionato, per capire dove la strategia regge. */
 export function summarizeByLeague(rows) {
   const byLeague = new Map();

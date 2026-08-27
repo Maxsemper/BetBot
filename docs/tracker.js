@@ -11,8 +11,9 @@ import {
   STORAGE_KEY, SCHEMA_VERSION, RESULTS,
   syncWithSignals, profitLoss, summarize, summarizeByLeague,
   isLocked, isPlayed, toCsv, parseBackup, newRow, applyResults,
-  computedProfitLoss, hasPlOverride,
+  computedProfitLoss, hasPlOverride, equityCurve,
 } from './tracker-core.js';
+import { renderEquityChart } from './equity-chart.js';
 
 const state = { rows: [], hidden: new Set(), onlyPlayed: false, hideSettled: false };
 
@@ -147,9 +148,26 @@ function renderFilters(data) {
 
 function render() {
   renderStats();
+  renderChart();
   renderTable();
   renderByLeague();
 }
+
+/**
+ * Il grafico si ridisegna alla larghezza reale invece di essere scalato:
+ * scalare deformerebbe spessori e testo. Serve quindi ridisegnarlo anche
+ * quando la finestra cambia dimensione.
+ */
+function renderChart() {
+  renderEquityChart($('#chart'), equityCurve(state.rows));
+}
+
+// Ridisegno alla larghezza nuova, ma non a ogni pixel del trascinamento.
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderChart, 150);
+});
 
 function renderStats() {
   const s = summarize(state.rows);
