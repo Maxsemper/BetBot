@@ -354,3 +354,8 @@ dialog button.primary { background: var(--accent); border-color: var(--accent); 
 
 /* Cifre proporzionali sul numero grande: tabular-nums lo farebbe sembrare slegato. */
 .stat.big .v { font-variant-numeric: normal; }
+.tracker .miss-tag {
+  color: var(--warn); font-size: 10px; margin-left: 6px; cursor: help;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: 4px; padding: 1px 4px; white-space: nowrap;
+}

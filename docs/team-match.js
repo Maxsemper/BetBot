@@ -37,7 +37,9 @@ const ALIAS = new Map(Object.entries({
   // ma i feed usano il nome originale. Senza queste voci "Barcellona" non
   // troverebbe mai "Barcelona".
   'barcellona': 'barcelona',
+  'barca': 'barcelona',   // copre anche "Barça": la cediglia cade con gli accenti
   'siviglia': 'sevilla',
+  'atleti': 'atletico madrid',
   'saragozza': 'zaragoza',
   'bilbao': 'athletic',
   'lilla': 'lille',

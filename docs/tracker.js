@@ -17,6 +17,20 @@ import { renderEquityChart } from './equity-chart.js';
 
 const state = { rows: [], hidden: new Set(), onlyPlayed: false, hideSettled: false };
 
+const MISS_TITLE = 'La partita è finita ma il risultato non è stato trovato in automatico. '
+  + 'Di solito il nome di una squadra è scritto in un modo che il sistema non riconosce, '
+  + 'oppure la data è sbagliata di qualche giorno. Correggi la riga o compila l’esito a mano.';
+
+/**
+ * La partita è finita, non ha un esito, e il recupero automatico non ha
+ * prodotto nulla. Senza questa indicazione la riga resterebbe vuota senza
+ * spiegare perché, e non si saprebbe se aspettare o intervenire.
+ */
+function esitoMancante(row) {
+  return Boolean(row.frozen) && !row.result && !row.score
+    && Date.parse(row.commenceTime) < Date.now() - 3 * 60 * 60 * 1000;
+}
+
 // Spiegazione del punteggio mostrato accanto alla partita.
 const SCORE_TITLE = {
   full_time: 'Risultato finale',
@@ -282,6 +296,7 @@ function renderRow(row) {
         <option value="${RESULTS.VOID}">Annullata</option>
       </select>
       ${row.resultAuto ? '<span class="auto-tag" title="Compilato dal risultato della partita. Modificalo se non torna.">auto</span>' : ''}
+      ${esitoMancante(row) ? `<span class="miss-tag" title="${esc(MISS_TITLE)}">non trovato</span>` : ''}
     </td>
     <td class="c-num"><input class="f-odds" type="number" step="0.01" min="1.01" inputmode="decimal" aria-label="Quota"></td>
     <td class="c-num"><input class="f-stake" type="number" step="0.5" min="0" inputmode="decimal" aria-label="Stake in euro"></td>

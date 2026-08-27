@@ -357,6 +357,27 @@ await t('caso reale: le due partite gia giocate si ritrovano', async () => {
   eq(rows.map(r => r.result), ['win', 'win']);
   eq(rows[1].score, { home: 0, away: 5, status: 'full_time' }, 'anche scritta all italiana:');
 });
+
+await t('una data sbagliata di un giorno non impedisce l abbinamento', async () => {
+  // Sulle righe scritte a mano la data la mette l'utente: un giorno di scarto
+  // e' un errore di battitura, non una partita diversa.
+  const recent = [{ league: 'La Liga', home: 'Elche', away: 'Barcelona',
+    commenceTime: '2026-08-23T19:30:00Z', homeScore: 0, awayScore: 5,
+    status: 'full_time', outcomeAway: 'win' }];
+  const conData = giorno => applyResults([{ id: 'man_1', home: 'Elche', away: 'Barcellona',
+    commenceTime: `2026-08-${giorno}T21:00:00Z`, stake: 10, odds: 1.4, result: null }], { recent });
+
+  eq(conData('23').rows[0].result, 'win', 'data esatta:');
+  eq(conData('24').rows[0].result, 'win', 'un giorno dopo:');
+  eq(conData('22').rows[0].result, 'win', 'un giorno prima:');
+  eq(conData('28').rows[0].result, null, 'cinque giorni: troppo, non si indovina');
+});
+
+await t('"Barca" e "Barça" abbinano il Barcelona', async () => {
+  ok(sameTeam('Barca', 'Barcelona'));
+  ok(sameTeam('Barça', 'Barcelona'), 'la cediglia cade con gli accenti');
+  ok(!sameTeam('Barca', 'Bari'), 'ma non qualunque cosa inizi per bar');
+});
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>

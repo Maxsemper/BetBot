@@ -235,6 +235,11 @@ I nomi puoi scriverli **in italiano**: `Barcellona`, `Siviglia`, `Lilla`, `Marsi
 di proposito: in Ligue 1 ci sono sia il Paris Saint-Germain sia il Paris FC, e
 tradurlo significherebbe scegliere al posto tuo.
 
+Sulla **data** la tolleranza e' di tre giorni, perche' su una riga scritta a mano
+un giorno di scarto e' un errore di battitura, non una partita diversa. Se il
+risultato non viene trovato, la riga lo dice con l'etichetta `non trovato`
+invece di restare vuota senza spiegazione.
+
 ### Il grafico dell'andamento
 
 Accanto alle statistiche c'è la **curva del profitto cumulato**: non dove sei, ma
@@ -380,8 +385,8 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-127 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
-`tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (36, risultati
+129 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
+`tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (38, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 

@@ -15,6 +15,9 @@ const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 // inutili in localStorage e nei backup.
 const round3 = v => (v === null ? null : Math.round(v * 1000) / 1000);
 
+// Tolleranza sulla data quando si cerca il risultato di una riga scritta a mano.
+const TOLLERANZA_MANUALE_MS = 3 * 24 * 60 * 60 * 1000;
+
 /** Una riga con dati inseriti da te non deve mai sparire da sola. */
 export function hasUserData(row) {
   return Boolean(row.result) || num(row.stake) !== null
@@ -141,7 +144,13 @@ export function applyResults(rows, registry) {
   const filled = [];
 
   const out = rows.map(row => {
-    const res = results[row.id] ?? (recent.length ? findFixture(row, recent) : null);
+    // Sulle righe aggiunte a mano la data la scrivi tu, e puo' essere fuori di
+    // qualche ora o di un giorno. La ricerca per nome usa quindi una tolleranza
+    // piu' larga di quella del job, dove le date vengono dallo stesso feed e
+    // sono precise. Due squadre non si incontrano due volte in tre giorni,
+    // quindi allargare non crea ambiguita'.
+    const res = results[row.id]
+      ?? (recent.length ? findFixture(row, recent, TOLLERANZA_MANUALE_MS) : null);
     if (!res || !res.outcomeAway) return row;
 
     // Il punteggio si mostra comunque, anche su righe compilate a mano.
