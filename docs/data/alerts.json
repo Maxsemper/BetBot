@@ -1,6 +1,53 @@
 {
-  "updatedAt": "2026-08-29T12:11:50.849Z",
+  "updatedAt": "2026-08-29T20:20:12.561Z",
   "items": [
+    {
+      "id": "73639380311449b9494a3230cf1356ba",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Valencia",
+      "away": "Barcelona",
+      "commenceTime": "2026-09-06T14:15:00Z",
+      "matchingBooks": [
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.45
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.49
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.51
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.56
+        },
+        {
+          "key": "betsson",
+          "title": "Betsson",
+          "away": 1.58
+        },
+        {
+          "key": "nordicbet",
+          "title": "Nordic Bet",
+          "away": 1.58
+        }
+      ],
+      "booksUnderThreshold": 7,
+      "bookCount": 7,
+      "bestAway": 1.64,
+      "minAway": 1.45,
+      "avgAway": 1.5442857142857143,
+      "trend": null,
+      "notifiedAt": "2026-08-29T20:20:12.560Z"
+    },
     {
       "id": "b875b7d3959faf73542d0bf88adf6b84",
       "league": "Ligue 1",
