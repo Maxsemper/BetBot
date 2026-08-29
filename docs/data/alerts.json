@@ -1,6 +1,53 @@
 {
-  "updatedAt": "2026-08-29T05:24:12.804Z",
+  "updatedAt": "2026-08-29T12:11:50.849Z",
   "items": [
+    {
+      "id": "b875b7d3959faf73542d0bf88adf6b84",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Strasbourg",
+      "away": "RC Lens",
+      "commenceTime": "2026-08-29T15:15:00Z",
+      "matchingBooks": [
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.85
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.85
+        }
+      ],
+      "booksUnderThreshold": 2,
+      "bookCount": 22,
+      "bestAway": 1.98,
+      "minAway": 1.85,
+      "avgAway": 1.9159090909090912,
+      "trend": {
+        "direction": "down",
+        "delta": -0.098,
+        "deltaPct": -4.87,
+        "fromOpen": -0.148,
+        "fromOpenPct": -7.17,
+        "open": 2.064,
+        "openedAt": "2026-08-26T12:42:38.000Z",
+        "previousAt": "2026-08-29T05:24:12.000Z",
+        "samples": 8,
+        "spark": [
+          2.064,
+          2.066,
+          2.062,
+          2.052,
+          2.047,
+          2.048,
+          2.014,
+          1.916
+        ]
+      },
+      "notifiedAt": "2026-08-29T12:11:50.847Z"
+    },
     {
       "id": "1484e27f774c67d124acae27e82e60fa",
       "league": "La Liga",
