@@ -1,6 +1,48 @@
 {
-  "updatedAt": "2026-08-28T21:41:06.734Z",
+  "updatedAt": "2026-08-29T05:24:12.804Z",
   "items": [
+    {
+      "id": "1484e27f774c67d124acae27e82e60fa",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Real Betis",
+      "away": "Real Madrid",
+      "commenceTime": "2026-09-04T19:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.72
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.78
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.8
+        },
+        {
+          "key": "betsson",
+          "title": "Betsson",
+          "away": 1.82
+        },
+        {
+          "key": "nordicbet",
+          "title": "Nordic Bet",
+          "away": 1.82
+        }
+      ],
+      "booksUnderThreshold": 5,
+      "bookCount": 7,
+      "bestAway": 1.91,
+      "minAway": 1.72,
+      "avgAway": 1.8171428571428572,
+      "trend": null,
+      "notifiedAt": "2026-08-29T05:24:12.803Z"
+    },
     {
       "id": "3e8cb1ccc68725b086d8e0af6bbc72ce",
       "league": "Serie A",
