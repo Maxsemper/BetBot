@@ -10,11 +10,11 @@ on:
       threshold:
         description: 'Soglia quota "2"'
         required: false
-        default: '1.85'
+        default: '1.80'
       alert_mode:
-        description: 'any | best | average'
+        description: 'average = media di mercato · any = un solo bookmaker · best = tutto il mercato'
         required: false
-        default: 'any'
+        default: 'average'
 
 concurrency:
   group: monitor-quote
@@ -38,8 +38,8 @@ jobs:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          ODDS_THRESHOLD: ${{ inputs.threshold || '1.85' }}
-          ALERT_MODE: ${{ inputs.alert_mode || 'any' }}
+          ODDS_THRESHOLD: ${{ inputs.threshold || '1.80' }}
+          ALERT_MODE: ${{ inputs.alert_mode || 'average' }}
           ODDS_REGIONS: eu
         run: |
           export PAGE_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"

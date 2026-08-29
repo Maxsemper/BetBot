@@ -30,7 +30,15 @@ async function load() {
   maybeNotify(odds);
 }
 
+// Cosa viene confrontato con la soglia, secondo la modalita' attiva.
+const RULE_WHAT = {
+  average: 'la quota media di mercato',
+  any: 'la quota di almeno un bookmaker',
+  best: 'anche la quota più alta',
+};
+
 function render(data, alerts) {
+  $('#ruleWhat').textContent = RULE_WHAT[data.alertMode] ?? 'la quota';
   $('#threshold').textContent = fmtOdd(data.threshold);
   $('#updated').textContent = fmtTime(data.fetchedAt);
   $('#quota').textContent = data.quota?.remaining ?? '—';
@@ -129,6 +137,29 @@ function sparkline(tr) {
       stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
 
+/**
+ * Riepilogo delle quote, con in grassetto il numero che DECIDE il segnale.
+ *
+ * Cambia con la modalita' di alert: sarebbe fuorviante mettere in evidenza il
+ * minimo quando la regola guarda la media. Gli altri due restano visibili,
+ * perche' servono comunque a capire quanto e' compatto il mercato.
+ */
+function riepilogoQuote(s, under) {
+  const modo = state.data?.alertMode ?? 'any';
+  const forte = { any: 'min', average: 'avg', best: 'max' }[modo] ?? 'min';
+  const parte = (chiave, etichetta, valore) => (chiave === forte
+    ? `${etichetta} <b>${fmtOdd(valore)}</b>`
+    : `${etichetta} ${fmtOdd(valore)}`);
+
+  return [
+    parte('min', 'min', s.min),
+    parte('avg', 'media', s.avg),
+    parte('max', 'max', s.max),
+    `${s.count ?? 0} book`,
+    under ? `<b>${under}</b> sotto soglia` : '',
+  ].filter(Boolean).join(' · ');
+}
+
 function matchCard(m, threshold) {
   const el = document.createElement('article');
   el.className = 'match' + (m.triggered ? ' hit' : '');
@@ -144,7 +175,7 @@ function matchCard(m, threshold) {
         ${m.triggered ? '<span class="badge">SEGNALE</span>' : ''}
         ${trendBadge(tr)}
         ${sparkline(tr)}
-        <span class="best">min <b>${fmtOdd(s.min)}</b> · media ${fmtOdd(s.avg)} · ${s.count ?? 0} book${under ? ` · <b>${under}</b> sotto soglia` : ""}</span>
+        <span class="best">${riepilogoQuote(s, under)}</span>
       </div>
     </div>`;
 

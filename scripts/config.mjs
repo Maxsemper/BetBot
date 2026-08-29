@@ -7,13 +7,15 @@ const env = globalThis.process?.env ?? {};
 
 export const CONFIG = {
   // Soglia di alert: scatta quando la quota del "2" (squadra ospite) e' <= a questo valore.
-  threshold: Number(env.ODDS_THRESHOLD ?? 1.85),
+  // Si confronta con la MEDIA dei bookmaker: vedi alertMode.
+  threshold: Number(env.ODDS_THRESHOLD ?? 1.80),
 
   // Come valutare la soglia quando piu' bookmaker quotano la stessa partita:
-  //   'any'     -> alert se ALMENO UN bookmaker e' <= soglia (lettura letterale, default)
+  //   'average' -> alert sulla media dei bookmaker, cioe' sul consenso di mercato (default)
+  //   'any'     -> alert se ALMENO UN bookmaker e' <= soglia: piu' rumoroso, basta
+  //                un singolo book fuori linea
   //   'best'    -> alert se anche la quota PIU' ALTA e' <= soglia (segnale piu' forte)
-  //   'average' -> alert sulla media delle quote
-  alertMode: env.ALERT_MODE ?? 'any',
+  alertMode: env.ALERT_MODE ?? 'average',
 
   // Campionati monitorati. Le chiavi sono quelle di The Odds API.
   leagues: [

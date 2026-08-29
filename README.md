@@ -1,7 +1,7 @@
 # BetBot — Monitor quote e tracker, Serie A / La Liga / Ligue 1
 
 Monitora le quote **1X2** dei tre campionati e avvisa su **Telegram** quando la quota
-della **squadra ospite (il "2")** scende a **≤ 1.85**.
+della **squadra ospite (il "2")** scende a **≤ 1.80** di **media di mercato**.
 
 Gira su **GitHub Actions ogni 6 ore** (nessuna installazione sul PC) e pubblica una
 pagina di consultazione su **GitHub Pages**.
@@ -106,8 +106,8 @@ Si cambia tutto da `scripts/config.mjs` o via variabili d'ambiente nel workflow.
 
 | Variabile | Default | Significato |
 | --- | --- | --- |
-| `ODDS_THRESHOLD` | `1.85` | soglia sulla quota "2" (inclusiva) |
-| `ALERT_MODE` | `any` | `any` = basta un bookmaker sotto soglia · `best` = anche la quota più alta è sotto soglia · `average` = media sotto soglia |
+| `ODDS_THRESHOLD` | `1.80` | soglia sulla quota "2" (inclusiva) |
+| `ALERT_MODE` | `average` | `average` = la media dei bookmaker è sotto soglia · `any` = basta un bookmaker · `best` = anche la quota più alta |
 | `ODDS_REGIONS` | `eu` | regioni bookmaker; **ogni regione in più raddoppia il consumo di crediti** |
 | `BOOKMAKERS` | *(vuoto)* | whitelist di bookmaker, es. `pinnacle,unibet_it,betclic` |
 | `EXCLUDE_EXCHANGES` | `true` | esclude Betfair, Matchbook, Smarkets dal calcolo — vedi sotto |
@@ -136,9 +136,14 @@ rispetto alla mediana del mercato non deve far scattare un alert da solo.
 I bookmaker esclusi **restano visibili nella pagina**, in grigio e con il motivo:
 sono utili da vedere, non da usare per decidere.
 
-**Modo di alert consigliato:** `any` è la lettura letterale della regola ma è il più
-rumoroso — basta un singolo bookmaker fuori linea. `best` segnala solo quando *tutto*
-il mercato prezza l'ospite sotto 1.85, ed è il segnale più solido.
+**Modo di alert.** Il default è `average`: conta il **consenso di mercato**, non il
+bookmaker più generoso. `any` è la lettura letterale della regola ma è la più
+rumorosa — basta un singolo book fuori linea perché scatti; `best` è la più severa,
+richiede che anche la quota più alta sia sotto soglia.
+
+La pagina Segnali mette in **grassetto il numero che decide**, e cambia con la
+modalità: con `average` è la media, con `any` il minimo, con `best` il massimo.
+Evidenziare il minimo mentre la regola guarda la media sarebbe fuorviante.
 
 **Cambiare frequenza:** modifica il `cron` in `.github/workflows/monitor.yml`.
 Attenzione al costo: ogni giro consuma 3 crediti (1 per campionato) a prescindere
@@ -194,7 +199,7 @@ stesso riepilogo diviso per campionato.
 ### Come entrano ed escono le partite
 
 Le partite sotto soglia entrano **da sole**, e finché non le tocchi restano libere
-di uscire: se la quota risale sopra 1.85 la riga sparisce, se ci ridiscende torna.
+di uscire: se la partita non è più sotto soglia la riga sparisce, se ci rientra torna.
 
 Una riga si **blocca** — e non si muove più — in tre casi:
 
