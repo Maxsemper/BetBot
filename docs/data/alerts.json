@@ -1,6 +1,142 @@
 {
-  "updatedAt": "2026-08-30T11:08:04.691Z",
+  "updatedAt": "2026-08-30T15:56:47.452Z",
   "items": [
+    {
+      "id": "1c8ac5c8817391497ad6432804f9b62d",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Sassuolo",
+      "away": "Juventus",
+      "commenceTime": "2026-09-12T16:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.49
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.5
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.54
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.57
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.58
+        },
+        {
+          "key": "codere_it",
+          "title": "Codere (IT)",
+          "away": 1.62
+        }
+      ],
+      "booksUnderThreshold": 7,
+      "bookCount": 7,
+      "bestAway": 1.68,
+      "minAway": 1.49,
+      "avgAway": 1.5685714285714287,
+      "trend": null,
+      "notifiedAt": "2026-08-30T15:56:47.450Z"
+    },
+    {
+      "id": "2ad98271374ed8388bc6b36329e97669",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Torino",
+      "away": "AS Roma",
+      "commenceTime": "2026-09-13T10:30:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.66
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.68
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.73
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.76
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.8
+        }
+      ],
+      "booksUnderThreshold": 5,
+      "bookCount": 7,
+      "bestAway": 1.87,
+      "minAway": 1.66,
+      "avgAway": 1.7614285714285711,
+      "trend": null,
+      "notifiedAt": "2026-08-30T15:56:47.450Z"
+    },
+    {
+      "id": "27072c6b8013974edf991fa5e6994566",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Le Mans FC",
+      "away": "RC Lens",
+      "commenceTime": "2026-09-13T15:15:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.52
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.53
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.56
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.56
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.57
+        },
+        {
+          "key": "sport888",
+          "title": "888sport",
+          "away": 1.61
+        }
+      ],
+      "booksUnderThreshold": 10,
+      "bookCount": 10,
+      "bestAway": 1.66,
+      "minAway": 1.52,
+      "avgAway": 1.589,
+      "trend": null,
+      "notifiedAt": "2026-08-30T15:56:47.450Z"
+    },
     {
       "id": "73639380311449b9494a3230cf1356ba",
       "league": "La Liga",
