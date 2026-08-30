@@ -1,6 +1,100 @@
 {
-  "updatedAt": "2026-08-30T15:56:47.452Z",
+  "updatedAt": "2026-08-30T20:27:50.675Z",
   "items": [
+    {
+      "id": "6406438af00a2a42a81d6b2f1656d474",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Levante",
+      "away": "Barcelona",
+      "commenceTime": "2026-09-13T19:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.32
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.32
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.36
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.37
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.38
+        },
+        {
+          "key": "williamhill",
+          "title": "William Hill",
+          "away": 1.4
+        }
+      ],
+      "booksUnderThreshold": 11,
+      "bookCount": 11,
+      "bestAway": 1.46,
+      "minAway": 1.32,
+      "avgAway": 1.3909090909090909,
+      "trend": null,
+      "notifiedAt": "2026-08-30T20:27:50.674Z"
+    },
+    {
+      "id": "5751b76f18cdad53d0e5590bd7bf2677",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Brest",
+      "away": "Paris Saint Germain",
+      "commenceTime": "2026-09-13T18:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.24
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.25
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.26
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.27
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.28
+        },
+        {
+          "key": "sport888",
+          "title": "888sport",
+          "away": 1.3
+        }
+      ],
+      "booksUnderThreshold": 9,
+      "bookCount": 9,
+      "bestAway": 1.35,
+      "minAway": 1.24,
+      "avgAway": 1.2866666666666666,
+      "trend": null,
+      "notifiedAt": "2026-08-30T20:27:50.674Z"
+    },
     {
       "id": "1c8ac5c8817391497ad6432804f9b62d",
       "league": "Serie A",
