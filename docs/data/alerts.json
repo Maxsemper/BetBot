@@ -1,6 +1,100 @@
 {
-  "updatedAt": "2026-08-31T12:32:46.528Z",
+  "updatedAt": "2026-08-31T22:21:30.407Z",
   "items": [
+    {
+      "id": "0a91f850039ce571eb6e90b2eed15548",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Sassuolo",
+      "away": "Juventus",
+      "commenceTime": "2026-09-13T18:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.48
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.5
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.54
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.56
+        },
+        {
+          "key": "leovegas_se",
+          "title": "LeoVegas (SE)",
+          "away": 1.57
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.57
+        }
+      ],
+      "booksUnderThreshold": 10,
+      "bookCount": 10,
+      "bestAway": 1.65,
+      "minAway": 1.48,
+      "avgAway": 1.5580000000000003,
+      "trend": null,
+      "notifiedAt": "2026-08-31T22:21:30.405Z"
+    },
+    {
+      "id": "17a081148b714450797ef8d6a29d16e6",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Torino",
+      "away": "AS Roma",
+      "commenceTime": "2026-09-14T16:30:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.6
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.63
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.67
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.68
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.7
+        },
+        {
+          "key": "leovegas_se",
+          "title": "LeoVegas (SE)",
+          "away": 1.71
+        }
+      ],
+      "booksUnderThreshold": 10,
+      "bookCount": 10,
+      "bestAway": 1.76,
+      "minAway": 1.6,
+      "avgAway": 1.6880000000000002,
+      "trend": null,
+      "notifiedAt": "2026-08-31T22:21:30.405Z"
+    },
     {
       "id": "6406438af00a2a42a81d6b2f1656d474",
       "league": "La Liga",
