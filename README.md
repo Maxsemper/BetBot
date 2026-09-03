@@ -82,6 +82,7 @@ scripts/history.mjs             storico per partita e calcolo salita/discesa
 scripts/results.mjs             registro dei risultati delle partite giocate
 scripts/results/espn.mjs        fonte risultati gratuita, senza chiave
 docs/team-match.js              abbinamento nomi squadra fra i due feed
+docs/bookmakers.js              quali bookmaker sono italiani
 scripts/alerts/telegram.mjs     costruzione e invio del messaggio
 scripts/fetch-odds.mjs          orchestratore
 docs/index.html                 pagina Segnali: partite e quote sotto soglia
@@ -127,10 +128,31 @@ Torino - AS Roma   14/09 18:30   12 book: Unibet, Winamax, Betclic, 888, Tipico.
 ```
 
 Lasciarli separati significa due segnali per la stessa partita, due alert, due righe
-nel tracker, e **due medie calcolate ognuna su meta' mercato**. Il provider li unisce:
-l'orario e l'id vengono dalla variante con **piu' bookmaker** — confrontando quattro
-casi con il calendario ESPN, la maggioranza aveva sempre l'orario giusto — e le quote
-sono l'unione di tutti i book. Nella pagina la partita porta il segno `⚭`.
+nel tracker, e **due medie calcolate ognuna su metà mercato**. Il provider li unisce,
+e le quote sono l'unione di tutti i book.
+
+Per decidere orario e id, nell'ordine:
+
+1. **la variante con un bookmaker italiano**, se c'è — si gioca dall'Italia, e il
+   calendario che conta è quello dei siti su cui si punta davvero;
+2. altrimenti la variante con **più bookmaker** — confrontando quattro casi con il
+   calendario ESPN, che è una fonte indipendente, la maggioranza aveva sempre
+   l'orario giusto;
+3. a parità, l'id più basso, solo per essere deterministici.
+
+Nella pagina la partita porta il segno `⚭`, e il tooltip dice quale criterio ha
+deciso l'orario.
+
+### Bookmaker italiani
+
+Giocando dall'Italia si può puntare solo su siti con licenza ADM. Nel feed ce n'è
+**uno solo, Codere IT**, presente sul ~47% delle partite: nella tabella quote è
+marcato `IT`.
+
+È un limite di cui tenere conto leggendo il segnale: la media che fa scattare
+l'alert include Winamax FR, PMU FR, Tipico DE, NordicBet e altri **su cui non puoi
+giocare**. È un buon termometro del mercato, ma la quota che troverai sul tuo sito
+può essere diversa — motivo in più per correggere a mano la quota nel tracker.
 
 ### Perché gli exchange sono esclusi
 
@@ -407,7 +429,7 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-137 test in tutto: `tests/rules.test.html` (45, segnale, tendenza e doppioni),
+141 test in tutto: `tests/rules.test.html` (49, segnale, tendenza e doppioni),
 `tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (38, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:

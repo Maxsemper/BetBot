@@ -7,6 +7,7 @@
 
 import { ODDS_API_BASE } from '../config.mjs';
 import { sameTeam } from '../../docs/team-match.js';
+import { haBookmakerItaliano } from '../../docs/bookmakers.js';
 
 export const NAME = 'the-odds-api';
 
@@ -24,7 +25,9 @@ const SCARTO_DOPPIONI_MS = 3 * 24 * 60 * 60 * 1000;
  * due alert, due righe nel tracker, e due medie calcolate ognuna su meta'
  * mercato.
  *
- * Id e orario vengono dalla variante con piu' bookmaker: confrontando quattro
+ * Id e orario vengono dalla variante con un bookmaker italiano se c'e' — si
+ * gioca dall'Italia, e il calendario che conta e' quello dei siti su cui si
+ * punta davvero. Altrimenti dalla variante con piu' bookmaker: confrontando quattro
  * casi con una fonte calendario indipendente, la maggioranza aveva sempre
  * l'orario giusto. E' anche la scelta piu' stabile, perche' quando il feed si
  * corregge da solo e' la variante che sopravvive, quindi l'id non cambia.
@@ -44,8 +47,17 @@ export function unisciDoppioni(matches) {
 function fondiGruppo(gruppo) {
   if (gruppo.length === 1) return gruppo[0];
 
-  const principale = gruppo.slice().sort((a, b) =>
-    b.books.length - a.books.length || (a.id < b.id ? -1 : 1))[0];
+  // Ordine di precedenza per decidere orario e id:
+  //  1. la variante con un bookmaker italiano — si gioca dall'Italia, e il
+  //     calendario che conta e' quello dei siti su cui si punta davvero;
+  //  2. altrimenti la variante con piu' bookmaker;
+  //  3. a parita', l'id piu' basso, solo per essere deterministici.
+  const ordinate = gruppo.slice().sort((a, b) =>
+    (haBookmakerItaliano(b.books) ? 1 : 0) - (haBookmakerItaliano(a.books) ? 1 : 0)
+    || b.books.length - a.books.length
+    || (a.id < b.id ? -1 : 1));
+  const principale = ordinate[0];
+  const decisoDa = haBookmakerItaliano(principale.books) ? 'bookmaker italiano' : 'maggioranza dei bookmaker';
 
   // Unione dei bookmaker: se lo stesso compare in piu' varianti vince la
   // quotazione piu' recente.
@@ -61,6 +73,7 @@ function fondiGruppo(gruppo) {
     ...principale,
     books: [...perChiave.values()].sort((a, b) => a.title.localeCompare(b.title)),
     variantiUnite: gruppo.length,
+    orarioDecisoDa: decisoDa,
   };
 }
 

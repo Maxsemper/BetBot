@@ -361,3 +361,9 @@ dialog button.primary { background: var(--accent); border-color: var(--accent); 
 }
 /* Partita ricostruita unendo eventi che il feed teneva separati. */
 .match .merged { color: var(--accent); cursor: help; margin-left: 2px; }
+/* Bookmaker con licenza italiana: gli unici su cui si puo' puntare dall'Italia. */
+.books .it-tag {
+  font-size: 9px; font-weight: 700; letter-spacing: .04em; cursor: help;
+  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 3px; padding: 0 3px; margin-left: 5px; vertical-align: 1px;
+}

@@ -1,3 +1,5 @@
+import { isItaliano } from './bookmakers.js';
+
 // Frontend del monitor: legge i JSON generati dal job e li rende leggibili.
 // Nessuna dipendenza esterna, nessuna chiave API nel browser.
 
@@ -170,7 +172,7 @@ function matchCard(m, threshold) {
   el.innerHTML = `
     <div class="match-head">
       <div class="kickoff">${esc(fmtTime(m.commenceTime))}${m.variantiUnite > 1
-        ? ` <span class="merged" title="I bookmaker non concordavano sull’orario: il feed dava ${m.variantiUnite} eventi separati per questa partita. Sono stati uniti, e l’orario è quello indicato dalla maggioranza dei bookmaker.">⚭</span>`
+        ? ` <span class="merged" title="I bookmaker non concordavano sull’orario: il feed dava ${m.variantiUnite} eventi separati per questa partita. Sono stati uniti; l’orario mostrato è quello indicato ${esc(m.orarioDecisoDa === 'bookmaker italiano' ? 'dal bookmaker italiano' : 'dalla maggioranza dei bookmaker')}.">⚭</span>`
         : ''}</div>
       <div class="teams">${esc(m.home)} <span style="opacity:.5">–</span> <span class="away">${esc(m.away)}</span></div>
       <div class="summary">
@@ -190,7 +192,9 @@ function matchCard(m, threshold) {
       <tbody>
         ${m.books.map(b => `
           <tr class="${b.excluded ? 'excluded' : ''}">
-            <td>${esc(b.title)}${b.excluded ? ` <span class="tag">${EXCLUSION_LABEL[b.excluded] ?? b.excluded}</span>` : ''}</td>
+            <td>${esc(b.title)}${isItaliano(b.key)
+              ? ' <span class="it-tag" title="Bookmaker con licenza italiana: giocando dall’Italia è uno dei pochi su cui puoi puntare davvero.">IT</span>' : ''}${
+              b.excluded ? ` <span class="tag">${EXCLUSION_LABEL[b.excluded] ?? b.excluded}</span>` : ''}</td>
             <td>${fmtOdd(b.home)}</td>
             <td>${fmtOdd(b.draw)}</td>
             <td class="two${!b.excluded && b.away <= threshold ? ' under' : ''}">${fmtOdd(b.away)}</td>

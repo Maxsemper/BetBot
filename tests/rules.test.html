@@ -4,6 +4,7 @@ import { awayStats, isTriggered, annotate, collectTriggered, diffAgainstState, m
 import { buildMessage } from '../scripts/alerts/telegram.mjs';
 import { appendSamples, computeTrend, attachTrends } from '../scripts/history.mjs';
 import { unisciDoppioni } from '../scripts/providers/the-odds-api.mjs';
+import { isItaliano } from '../docs/bookmakers.js';
 
 const log = [];
 let fails = 0;
@@ -419,6 +420,48 @@ t('tre varianti della stessa partita si uniscono tutte', () => {
   eq(out[0].books.length, 5);
   eq(out[0].id, 'b');
   eq(out[0].variantiUnite, 3);
+});
+
+t('un bookmaker italiano ha la precedenza sulla maggioranza', () => {
+  // Si gioca dall'Italia: se un sito italiano dice un orario, vale quello,
+  // anche se e' in minoranza.
+  const out = unisciDoppioni([
+    ev('aaa', 'Torino', 'AS Roma', '2026-09-13T10:30:00Z', ['codere_it']),
+    ev('bbb', 'Torino', 'AS Roma', '2026-09-14T16:30:00Z', ['unibet_fr', 'winamax_fr', 'betclic_fr', 'pinnacle']),
+  ]);
+  eq(out.length, 1);
+  eq(out[0].commenceTime, '2026-09-13T10:30:00Z', 'vince l orario del book italiano:');
+  eq(out[0].id, 'aaa');
+  eq(out[0].orarioDecisoDa, 'bookmaker italiano');
+  eq(out[0].books.length, 5, 'le quote restano comunque tutte:');
+});
+
+t('senza bookmaker italiani decide la maggioranza', () => {
+  const out = unisciDoppioni([
+    ev('aaa', 'Torino', 'AS Roma', '2026-09-13T10:30:00Z', ['pinnacle', 'betsson']),
+    ev('bbb', 'Torino', 'AS Roma', '2026-09-14T16:30:00Z', ['unibet_fr', 'winamax_fr', 'betclic_fr']),
+  ]);
+  eq(out[0].commenceTime, '2026-09-14T16:30:00Z');
+  eq(out[0].orarioDecisoDa, 'maggioranza dei bookmaker');
+});
+
+t('con bookmaker italiani da entrambe le parti decide la maggioranza', () => {
+  const out = unisciDoppioni([
+    ev('aaa', 'A', 'B', '2026-09-13T10:00:00Z', ['codere_it']),
+    ev('bbb', 'A', 'B', '2026-09-14T10:00:00Z', ['unibet_it', 'pinnacle', 'betsson']),
+  ]);
+  eq(out[0].commenceTime, '2026-09-14T10:00:00Z', 'la priorita italiana non basta piu a distinguerle:');
+});
+
+t('riconoscimento dei bookmaker italiani', () => {
+  ok(isItaliano('codere_it'));
+  ok(isItaliano('unibet_it'));
+  ok(isItaliano('sisal'));
+  ok(isItaliano('eurobet'));
+  ok(!isItaliano('unibet_fr'), 'stessa catena ma licenza francese:');
+  ok(!isItaliano('pinnacle'));
+  ok(!isItaliano(''), 'chiave vuota non deve passare:');
+  ok(!isItaliano(undefined));
 });
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
