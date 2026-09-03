@@ -6,8 +6,63 @@
 // con lo stesso formato di ritorno, e cambiare l'import in fetch-odds.mjs.
 
 import { ODDS_API_BASE } from '../config.mjs';
+import { sameTeam } from '../../docs/team-match.js';
 
 export const NAME = 'the-odds-api';
+
+// Due eventi cosi' vicini con le stesse squadre sono la stessa partita: due
+// squadre non si incontrano davvero due volte in tre giorni.
+const SCARTO_DOPPIONI_MS = 3 * 24 * 60 * 60 * 1000;
+
+/**
+ * Unisce gli eventi che descrivono la stessa partita.
+ *
+ * Quando i bookmaker non concordano sull'orario, il feed restituisce due
+ * eventi distinti con id diversi e i bookmaker spartiti in gruppi disgiunti:
+ * Torino - AS Roma compariva due volte, il 13 settembre con 4 bookmaker e il
+ * 14 con 12. Lasciarli separati significa due segnali per la stessa partita,
+ * due alert, due righe nel tracker, e due medie calcolate ognuna su meta'
+ * mercato.
+ *
+ * Id e orario vengono dalla variante con piu' bookmaker: confrontando quattro
+ * casi con una fonte calendario indipendente, la maggioranza aveva sempre
+ * l'orario giusto. E' anche la scelta piu' stabile, perche' quando il feed si
+ * corregge da solo e' la variante che sopravvive, quindi l'id non cambia.
+ */
+export function unisciDoppioni(matches) {
+  const gruppi = [];
+  for (const m of matches) {
+    const gruppo = gruppi.find(g =>
+      sameTeam(g[0].home, m.home) && sameTeam(g[0].away, m.away) &&
+      g.some(x => Math.abs(Date.parse(x.commenceTime) - Date.parse(m.commenceTime)) <= SCARTO_DOPPIONI_MS));
+    if (gruppo) gruppo.push(m);
+    else gruppi.push([m]);
+  }
+  return gruppi.map(fondiGruppo);
+}
+
+function fondiGruppo(gruppo) {
+  if (gruppo.length === 1) return gruppo[0];
+
+  const principale = gruppo.slice().sort((a, b) =>
+    b.books.length - a.books.length || (a.id < b.id ? -1 : 1))[0];
+
+  // Unione dei bookmaker: se lo stesso compare in piu' varianti vince la
+  // quotazione piu' recente.
+  const perChiave = new Map();
+  for (const m of gruppo) {
+    for (const libro of m.books) {
+      const gia = perChiave.get(libro.key);
+      if (!gia || (libro.lastUpdate ?? '') > (gia.lastUpdate ?? '')) perChiave.set(libro.key, libro);
+    }
+  }
+
+  return {
+    ...principale,
+    books: [...perChiave.values()].sort((a, b) => a.title.localeCompare(b.title)),
+    variantiUnite: gruppo.length,
+  };
+}
 
 /**
  * Normalizza le tre quote 1X2 di un bookmaker.
@@ -70,10 +125,13 @@ async function fetchLeague(league, config, apiKey) {
         .filter(Boolean)
         .sort((a, b) => a.title.localeCompare(b.title)),
     }))
-    .filter(m => m.books.length > 0)
+    .filter(m => m.books.length > 0);
+
+  const uniti = unisciDoppioni(matches)
     .sort((a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime));
 
-  return { matches, quota };
+  const doppioni = matches.length - uniti.length;
+  return { matches: uniti, quota, doppioni };
 }
 
 /**
@@ -92,10 +150,12 @@ export async function fetchOdds(config) {
   // Sequenziale: i crediti si consumano uno alla volta e l'ordine aiuta i log.
   for (const league of config.leagues) {
     try {
-      const { matches, quota: q } = await fetchLeague(league, config, apiKey);
+      const { matches, quota: q, doppioni } = await fetchLeague(league, config, apiKey);
       leagues.push({ ...league, matches });
       quota = q;
-      console.log(`  ${league.label}: ${matches.length} partite (crediti rimasti: ${q.remaining ?? '?'})`);
+      console.log(`  ${league.label}: ${matches.length} partite`
+        + (doppioni ? ` (${doppioni} doppioni di calendario uniti)` : '')
+        + ` · crediti rimasti: ${q.remaining ?? '?'}`);
     } catch (err) {
       errors.push(`${league.label}: ${err.message}`);
       leagues.push({ ...league, matches: [] });

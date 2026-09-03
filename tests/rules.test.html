@@ -3,6 +3,7 @@
 import { awayStats, isTriggered, annotate, collectTriggered, diffAgainstState, markExcluded, includedBooks } from '../scripts/rules.mjs';
 import { buildMessage } from '../scripts/alerts/telegram.mjs';
 import { appendSamples, computeTrend, attachTrends } from '../scripts/history.mjs';
+import { unisciDoppioni } from '../scripts/providers/the-odds-api.mjs';
 
 const log = [];
 let fails = 0;
@@ -330,6 +331,94 @@ t('senza tendenza il messaggio non si rompe', () => {
   const msg = buildMessage(collectTriggered(a.data, CFG), 1.85, '');
   ok(msg.includes('media'), 'il messaggio deve restare valido');
   ok(!msg.includes('▼') && !msg.includes('▲'), 'nessuna freccia attesa');
+});
+
+// --- doppioni di calendario nel feed quote -----------------------------------
+// Quando i bookmaker non concordano sull'orario, il feed restituisce due eventi
+// separati per la stessa partita, spartendosi i bookmaker. Vanno riuniti.
+
+const ev = (id, home, away, when, chiavi) => ({
+  id, home, away, commenceTime: when,
+  books: chiavi.map(k => ({ key: k, title: k, home: 4, draw: 3.5, away: 1.7, lastUpdate: '2026-09-01T00:00:00Z' })),
+});
+
+t('due eventi della stessa partita diventano uno solo', () => {
+  const out = unisciDoppioni([
+    ev('aaa', 'Torino', 'AS Roma', '2026-09-13T10:30:00Z', ['pinnacle', 'betsson', 'nordicbet', 'marathonbet']),
+    ev('bbb', 'Torino', 'AS Roma', '2026-09-14T16:30:00Z', ['unibet_fr', 'winamax_fr', 'betclic_fr', 'sport888', 'tipico_de']),
+  ]);
+  eq(out.length, 1);
+  eq(out[0].books.length, 9, 'i bookmaker si sommano:');
+  eq(out[0].variantiUnite, 2);
+});
+
+t('l orario e l id vengono dalla variante con piu bookmaker', () => {
+  // Verificato su quattro casi reali con una fonte calendario indipendente:
+  // la maggioranza dei bookmaker aveva sempre l'orario giusto.
+  const out = unisciDoppioni([
+    ev('aaa', 'Torino', 'AS Roma', '2026-09-13T10:30:00Z', ['pinnacle', 'betsson']),
+    ev('bbb', 'Torino', 'AS Roma', '2026-09-14T16:30:00Z', ['unibet_fr', 'winamax_fr', 'betclic_fr']),
+  ]);
+  eq(out[0].commenceTime, '2026-09-14T16:30:00Z');
+  eq(out[0].id, 'bbb', 'cosi l id resta stabile quando il feed si corregge:');
+});
+
+t('a parita di bookmaker la scelta resta deterministica', () => {
+  const uno = unisciDoppioni([
+    ev('bbb', 'A', 'B', '2026-09-13T10:00:00Z', ['x', 'y']),
+    ev('aaa', 'A', 'B', '2026-09-14T10:00:00Z', ['z', 'w']),
+  ]);
+  const due = unisciDoppioni([
+    ev('aaa', 'A', 'B', '2026-09-14T10:00:00Z', ['z', 'w']),
+    ev('bbb', 'A', 'B', '2026-09-13T10:00:00Z', ['x', 'y']),
+  ]);
+  eq(uno[0].id, due[0].id, 'l ordine di arrivo non deve cambiare il risultato:');
+});
+
+t('lo stesso bookmaker in due varianti non viene contato due volte', () => {
+  const a = ev('aaa', 'A', 'B', '2026-09-13T10:00:00Z', ['pinnacle']);
+  const b = ev('bbb', 'A', 'B', '2026-09-14T10:00:00Z', ['pinnacle', 'unibet_fr']);
+  a.books[0].away = 1.90; a.books[0].lastUpdate = '2026-09-02T00:00:00Z';  // piu' recente
+  b.books[0].away = 1.70;
+  const out = unisciDoppioni([a, b]);
+  eq(out[0].books.length, 2);
+  eq(out[0].books.find(x => x.key === 'pinnacle').away, 1.90, 'vince la quotazione piu recente:');
+});
+
+t('partite diverse non vengono unite', () => {
+  eq(unisciDoppioni([
+    ev('a', 'Torino', 'AS Roma', '2026-09-14T16:30:00Z', ['x']),
+    ev('b', 'Torino', 'Juventus', '2026-09-14T16:30:00Z', ['y']),
+    ev('c', 'AS Roma', 'Torino', '2026-09-14T16:30:00Z', ['z']),
+  ]).length, 3, 'anche il ritorno e una partita diversa:');
+});
+
+t('lo stesso incontro a mesi di distanza resta doppio', () => {
+  // Andata e ritorno hanno le stesse squadre nello stesso verso solo in
+  // campionati diversi, ma la regola deve reggere comunque.
+  eq(unisciDoppioni([
+    ev('a', 'Torino', 'AS Roma', '2026-09-14T16:30:00Z', ['x']),
+    ev('b', 'Torino', 'AS Roma', '2027-02-14T16:30:00Z', ['y']),
+  ]).length, 2);
+});
+
+t('una partita senza doppioni passa intatta', () => {
+  const solo = ev('a', 'Torino', 'AS Roma', '2026-09-14T16:30:00Z', ['x', 'y']);
+  const out = unisciDoppioni([solo]);
+  eq(out.length, 1);
+  eq(out[0], solo, 'stesso oggetto, nessun campo aggiunto:');
+});
+
+t('tre varianti della stessa partita si uniscono tutte', () => {
+  const out = unisciDoppioni([
+    ev('a', 'A', 'B', '2026-09-12T10:00:00Z', ['x']),
+    ev('b', 'A', 'B', '2026-09-13T10:00:00Z', ['y', 'z', 'w']),
+    ev('c', 'A', 'B', '2026-09-14T10:00:00Z', ['v']),
+  ]);
+  eq(out.length, 1);
+  eq(out[0].books.length, 5);
+  eq(out[0].id, 'b');
+  eq(out[0].variantiUnite, 3);
 });
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');

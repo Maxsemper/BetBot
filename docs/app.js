@@ -169,7 +169,9 @@ function matchCard(m, threshold) {
   const tr = m.trend;
   el.innerHTML = `
     <div class="match-head">
-      <div class="kickoff">${esc(fmtTime(m.commenceTime))}</div>
+      <div class="kickoff">${esc(fmtTime(m.commenceTime))}${m.variantiUnite > 1
+        ? ` <span class="merged" title="I bookmaker non concordavano sull’orario: il feed dava ${m.variantiUnite} eventi separati per questa partita. Sono stati uniti, e l’orario è quello indicato dalla maggioranza dei bookmaker.">⚭</span>`
+        : ''}</div>
       <div class="teams">${esc(m.home)} <span style="opacity:.5">–</span> <span class="away">${esc(m.away)}</span></div>
       <div class="summary">
         ${m.triggered ? '<span class="badge">SEGNALE</span>' : ''}

@@ -359,3 +359,5 @@ dialog button.primary { background: var(--accent); border-color: var(--accent); 
   border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
   border-radius: 4px; padding: 1px 4px; white-space: nowrap;
 }
+/* Partita ricostruita unendo eventi che il feed teneva separati. */
+.match .merged { color: var(--accent); cursor: help; margin-left: 2px; }

@@ -115,6 +115,23 @@ Si cambia tutto da `scripts/config.mjs` o via variabili d'ambiente nel workflow.
 | `TREND_THRESHOLD_PCT` | `1` | sotto questa variazione % la quota è "stabile" |
 | `MAX_DAYS_AHEAD` | `14` | ignora le partite oltre N giorni |
 
+### Doppioni di calendario
+
+Quando i bookmaker non concordano sull'orario, il feed restituisce **due eventi
+distinti** per la stessa partita, con id diversi e i bookmaker spartiti in gruppi
+disgiunti. Caso reale:
+
+```
+Torino - AS Roma   13/09 12:30    4 book: Pinnacle, Betsson, NordicBet, Marathon
+Torino - AS Roma   14/09 18:30   12 book: Unibet, Winamax, Betclic, 888, Tipico...
+```
+
+Lasciarli separati significa due segnali per la stessa partita, due alert, due righe
+nel tracker, e **due medie calcolate ognuna su meta' mercato**. Il provider li unisce:
+l'orario e l'id vengono dalla variante con **piu' bookmaker** — confrontando quattro
+casi con il calendario ESPN, la maggioranza aveva sempre l'orario giusto — e le quote
+sono l'unione di tutti i book. Nella pagina la partita porta il segno `⚭`.
+
 ### Perché gli exchange sono esclusi
 
 Non è una scelta di gusto: al primo giro con dati reali, su 12 partite segnalate
@@ -390,7 +407,7 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-129 test in tutto: `tests/rules.test.html` (37, segnale e tendenza),
+137 test in tutto: `tests/rules.test.html` (45, segnale, tendenza e doppioni),
 `tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (38, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
