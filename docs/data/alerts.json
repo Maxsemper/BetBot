@@ -1,6 +1,77 @@
 {
-  "updatedAt": "2026-09-04T02:40:30.103Z",
+  "updatedAt": "2026-09-04T10:28:24.475Z",
   "items": [
+    {
+      "id": "8acf5c039c4ab96357d35a665883705a",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Genoa",
+      "away": "Como",
+      "commenceTime": "2026-09-04T18:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.68
+        },
+        {
+          "key": "leovegas_se",
+          "title": "LeoVegas (SE)",
+          "away": 1.7
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.7
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.71
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.72
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.72
+        }
+      ],
+      "booksUnderThreshold": 19,
+      "bookCount": 22,
+      "bestAway": 1.82,
+      "minAway": 1.68,
+      "avgAway": 1.7595454545454545,
+      "trend": {
+        "direction": "down",
+        "delta": -0.049,
+        "deltaPct": -2.71,
+        "fromOpen": 0.043,
+        "fromOpenPct": 2.5,
+        "open": 1.717,
+        "openedAt": "2026-08-26T12:42:38.000Z",
+        "previousAt": "2026-09-04T02:40:29.000Z",
+        "samples": 28,
+        "spark": [
+          1.813,
+          1.812,
+          1.814,
+          1.815,
+          1.821,
+          1.825,
+          1.812,
+          1.813,
+          1.811,
+          1.815,
+          1.809,
+          1.76
+        ]
+      },
+      "notifiedAt": "2026-09-04T10:28:24.473Z"
+    },
     {
       "id": "0a91f850039ce571eb6e90b2eed15548",
       "league": "Serie A",
