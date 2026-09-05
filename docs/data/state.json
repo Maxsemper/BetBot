@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-05T02:42:03.125Z",
+  "updatedAt": "2026-09-05T09:53:37.280Z",
   "active": {
     "0a91f850039ce571eb6e90b2eed15548": {
       "triggeredAt": "2026-08-31T22:21:30.026Z",
@@ -28,7 +28,7 @@
     },
     "5751b76f18cdad53d0e5590bd7bf2677": {
       "triggeredAt": "2026-08-30T20:27:49.823Z",
-      "minAway": 1.28,
+      "minAway": 1.27,
       "commenceTime": "2026-09-13T18:45:00Z"
     }
   }
