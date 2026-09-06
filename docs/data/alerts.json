@@ -1,6 +1,43 @@
 {
-  "updatedAt": "2026-09-06T02:39:29.753Z",
+  "updatedAt": "2026-09-06T10:10:54.608Z",
   "items": [
+    {
+      "id": "0b57607f4a514ee24df31b0c2db9ddc5",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Elche CF",
+      "away": "Real Madrid",
+      "commenceTime": "2026-09-15T19:30:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.23
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.25
+        },
+        {
+          "key": "codere_it",
+          "title": "Codere (IT)",
+          "away": 1.29
+        },
+        {
+          "key": "onexbet",
+          "title": "1xBet",
+          "away": 1.31
+        }
+      ],
+      "booksUnderThreshold": 4,
+      "bookCount": 4,
+      "bestAway": 1.31,
+      "minAway": 1.23,
+      "avgAway": 1.27,
+      "trend": null,
+      "notifiedAt": "2026-09-06T10:10:54.607Z"
+    },
     {
       "id": "8acf5c039c4ab96357d35a665883705a",
       "league": "Serie A",
