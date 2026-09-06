@@ -1,6 +1,77 @@
 {
-  "updatedAt": "2026-09-06T10:10:54.608Z",
+  "updatedAt": "2026-09-06T14:50:26.425Z",
   "items": [
+    {
+      "id": "72b918e99d594d40a13ca399f029a7ce",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Angers",
+      "away": "Rennes",
+      "commenceTime": "2026-09-06T15:15:00Z",
+      "matchingBooks": [
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.67
+        },
+        {
+          "key": "everygame",
+          "title": "Everygame",
+          "away": 1.7
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.7
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.7
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.7
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.72
+        }
+      ],
+      "booksUnderThreshold": 22,
+      "bookCount": 22,
+      "bestAway": 1.8,
+      "minAway": 1.67,
+      "avgAway": 1.7427272727272725,
+      "trend": {
+        "direction": "down",
+        "delta": -0.119,
+        "deltaPct": -6.39,
+        "fromOpen": -0.1,
+        "fromOpenPct": -5.43,
+        "open": 1.843,
+        "openedAt": "2026-08-30T15:56:46.000Z",
+        "previousAt": "2026-09-06T10:10:54.000Z",
+        "samples": 22,
+        "spark": [
+          1.848,
+          1.844,
+          1.858,
+          1.855,
+          1.87,
+          1.872,
+          1.875,
+          1.876,
+          1.88,
+          1.875,
+          1.862,
+          1.743
+        ]
+      },
+      "notifiedAt": "2026-09-06T14:50:26.423Z"
+    },
     {
       "id": "0b57607f4a514ee24df31b0c2db9ddc5",
       "league": "La Liga",
