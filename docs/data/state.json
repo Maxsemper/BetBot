@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-12T02:53:49.730Z",
+  "updatedAt": "2026-09-12T09:58:57.997Z",
   "active": {
     "0a91f850039ce571eb6e90b2eed15548": {
       "triggeredAt": "2026-08-31T22:21:30.026Z",
@@ -13,7 +13,7 @@
     },
     "f9e4aaa82676652e339be6c9b5ca44fb": {
       "triggeredAt": "2026-09-06T19:55:29.267Z",
-      "minAway": 1.51,
+      "minAway": 1.46,
       "commenceTime": "2026-09-20T13:00:00Z"
     },
     "6406438af00a2a42a81d6b2f1656d474": {
@@ -28,7 +28,7 @@
     },
     "27072c6b8013974edf991fa5e6994566": {
       "triggeredAt": "2026-08-30T15:56:46.933Z",
-      "minAway": 1.58,
+      "minAway": 1.59,
       "commenceTime": "2026-09-13T15:15:00Z"
     },
     "5751b76f18cdad53d0e5590bd7bf2677": {
