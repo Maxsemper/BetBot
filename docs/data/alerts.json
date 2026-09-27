@@ -1,6 +1,53 @@
 {
-  "updatedAt": "2026-09-27T16:17:47.733Z",
+  "updatedAt": "2026-09-27T20:47:04.740Z",
   "items": [
+    {
+      "id": "407f7d03157d1dfad384876e6a6bc910",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Cagliari",
+      "away": "Juventus",
+      "commenceTime": "2026-10-11T18:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.44
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.5
+        },
+        {
+          "key": "everygame",
+          "title": "Everygame",
+          "away": 1.5
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.5
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.52
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.52
+        }
+      ],
+      "booksUnderThreshold": 19,
+      "bookCount": 19,
+      "bestAway": 1.6,
+      "minAway": 1.44,
+      "avgAway": 1.5415789473684214,
+      "trend": null,
+      "notifiedAt": "2026-09-27T20:47:04.739Z"
+    },
     {
       "id": "e4cd525660de25ecfee1099882ef00e4",
       "league": "La Liga",
