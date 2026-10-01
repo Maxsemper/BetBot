@@ -1,6 +1,73 @@
 {
-  "updatedAt": "2026-10-01T03:51:46.477Z",
+  "updatedAt": "2026-10-01T12:19:56.451Z",
   "items": [
+    {
+      "id": "1cf64166dda1e0da8b325161deb39662",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Sassuolo",
+      "away": "AC Milan",
+      "commenceTime": "2026-10-11T16:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.68
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.75
+        },
+        {
+          "key": "everygame",
+          "title": "Everygame",
+          "away": 1.75
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.76
+        },
+        {
+          "key": "leovegas_se",
+          "title": "LeoVegas (SE)",
+          "away": 1.77
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.77
+        }
+      ],
+      "booksUnderThreshold": 11,
+      "bookCount": 19,
+      "bestAway": 1.87,
+      "minAway": 1.68,
+      "avgAway": 1.7999999999999998,
+      "trend": {
+        "direction": "flat",
+        "delta": -0.005,
+        "deltaPct": -0.28,
+        "fromOpen": -0.023,
+        "fromOpenPct": -1.26,
+        "open": 1.823,
+        "openedAt": "2026-09-28T03:20:29.000Z",
+        "previousAt": "2026-10-01T03:51:46.000Z",
+        "samples": 8,
+        "spark": [
+          1.823,
+          1.823,
+          1.813,
+          1.814,
+          1.812,
+          1.807,
+          1.805,
+          1.8
+        ]
+      },
+      "notifiedAt": "2026-10-01T12:19:56.448Z"
+    },
     {
       "id": "407f7d03157d1dfad384876e6a6bc910",
       "league": "Serie A",
