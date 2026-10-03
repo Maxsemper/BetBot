@@ -1,6 +1,100 @@
 {
-  "updatedAt": "2026-10-03T11:01:18.001Z",
+  "updatedAt": "2026-10-03T15:37:45.065Z",
   "items": [
+    {
+      "id": "907639dade64cca45d1ab639195d201e",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Venezia",
+      "away": "Napoli",
+      "commenceTime": "2026-10-17T13:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.59
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.62
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.66
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.67
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.68
+        },
+        {
+          "key": "sport888",
+          "title": "888sport",
+          "away": 1.7
+        }
+      ],
+      "booksUnderThreshold": 15,
+      "bookCount": 15,
+      "bestAway": 1.8,
+      "minAway": 1.59,
+      "avgAway": 1.7033333333333334,
+      "trend": null,
+      "notifiedAt": "2026-10-03T15:37:45.064Z"
+    },
+    {
+      "id": "f3034246520a2ee4ff0ac0d5074966f8",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Strasbourg",
+      "away": "Paris Saint Germain",
+      "commenceTime": "2026-10-17T15:15:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.34
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.35
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.35
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.36
+        },
+        {
+          "key": "suprabets",
+          "title": "Suprabets",
+          "away": 1.37
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.39
+        }
+      ],
+      "booksUnderThreshold": 16,
+      "bookCount": 16,
+      "bestAway": 1.46,
+      "minAway": 1.34,
+      "avgAway": 1.3974999999999997,
+      "trend": null,
+      "notifiedAt": "2026-10-03T15:37:45.064Z"
+    },
     {
       "id": "1cf64166dda1e0da8b325161deb39662",
       "league": "Serie A",
