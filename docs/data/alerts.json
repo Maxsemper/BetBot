@@ -1,6 +1,147 @@
 {
-  "updatedAt": "2026-10-03T15:37:45.065Z",
+  "updatedAt": "2026-10-03T20:32:09.716Z",
   "items": [
+    {
+      "id": "bfefc309177723410230fee52f650315",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Bologna",
+      "away": "Inter Milan",
+      "commenceTime": "2026-10-17T16:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.52
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.54
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.58
+        },
+        {
+          "key": "leovegas_se",
+          "title": "LeoVegas (SE)",
+          "away": 1.6
+        },
+        {
+          "key": "pinnacle",
+          "title": "Pinnacle",
+          "away": 1.62
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.62
+        }
+      ],
+      "booksUnderThreshold": 15,
+      "bookCount": 15,
+      "bestAway": 1.69,
+      "minAway": 1.52,
+      "avgAway": 1.6219999999999999,
+      "trend": null,
+      "notifiedAt": "2026-10-03T20:32:09.715Z"
+    },
+    {
+      "id": "846e496fc232b2fc20214754836727d0",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Real Betis",
+      "away": "Barcelona",
+      "commenceTime": "2026-10-17T16:30:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.42
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.43
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.44
+        },
+        {
+          "key": "williamhill",
+          "title": "William Hill",
+          "away": 1.44
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.45
+        },
+        {
+          "key": "leovegas_se",
+          "title": "LeoVegas (SE)",
+          "away": 1.47
+        }
+      ],
+      "booksUnderThreshold": 13,
+      "bookCount": 13,
+      "bestAway": 1.53,
+      "minAway": 1.42,
+      "avgAway": 1.4707692307692306,
+      "trend": null,
+      "notifiedAt": "2026-10-03T20:32:09.715Z"
+    },
+    {
+      "id": "b077aa049133c0358bcd643bfee48da3",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Troyes",
+      "away": "RC Lens",
+      "commenceTime": "2026-10-17T18:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.7
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.72
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.76
+        },
+        {
+          "key": "suprabets",
+          "title": "Suprabets",
+          "away": 1.77
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.77
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.78
+        }
+      ],
+      "booksUnderThreshold": 8,
+      "bookCount": 16,
+      "bestAway": 1.87,
+      "minAway": 1.7,
+      "avgAway": 1.7981250000000002,
+      "trend": null,
+      "notifiedAt": "2026-10-03T20:32:09.715Z"
+    },
     {
       "id": "907639dade64cca45d1ab639195d201e",
       "league": "Serie A",
