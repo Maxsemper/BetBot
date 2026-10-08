@@ -1,6 +1,77 @@
 {
-  "updatedAt": "2026-10-08T04:14:29.662Z",
+  "updatedAt": "2026-10-08T12:43:03.112Z",
   "items": [
+    {
+      "id": "3869391e3dbdcaa74153b11df56a3fe5",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Alavés",
+      "away": "Atlético Madrid",
+      "commenceTime": "2026-10-10T14:15:00Z",
+      "matchingBooks": [
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.73
+        },
+        {
+          "key": "williamhill",
+          "title": "William Hill",
+          "away": 1.73
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.74
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.75
+        },
+        {
+          "key": "leovegas_se",
+          "title": "LeoVegas (SE)",
+          "away": 1.77
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.78
+        }
+      ],
+      "booksUnderThreshold": 8,
+      "bookCount": 15,
+      "bestAway": 1.87,
+      "minAway": 1.73,
+      "avgAway": 1.7979999999999998,
+      "trend": {
+        "direction": "flat",
+        "delta": -0.015,
+        "deltaPct": -0.83,
+        "fromOpen": -0.107,
+        "fromOpenPct": -5.62,
+        "open": 1.905,
+        "openedAt": "2026-09-26T20:35:25.000Z",
+        "previousAt": "2026-10-08T04:14:29.000Z",
+        "samples": 30,
+        "spark": [
+          1.832,
+          1.826,
+          1.827,
+          1.828,
+          1.827,
+          1.825,
+          1.83,
+          1.829,
+          1.843,
+          1.803,
+          1.813,
+          1.798
+        ]
+      },
+      "notifiedAt": "2026-10-08T12:43:03.109Z"
+    },
     {
       "id": "bfefc309177723410230fee52f650315",
       "league": "Serie A",
