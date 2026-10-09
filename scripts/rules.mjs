@@ -82,6 +82,17 @@ export function isTriggered(stats, { threshold, alertMode }) {
   }
 }
 
+/**
+ * Caso limite: non e' ancora un segnale, ma almeno un bookmaker e' gia' sceso
+ * sotto soglia. Il mercato non e' d'accordo — qualcuno si muove prima degli
+ * altri — e sono le partite da tenere d'occhio perche' potrebbero diventare
+ * segnali al giro dopo.
+ */
+export function isBorderline(stats, config) {
+  if (!stats) return false;
+  return stats.min <= config.threshold && !isTriggered(stats, config);
+}
+
 /** Arricchisce ogni partita con esclusioni, statistiche e flag di trigger. */
 export function annotate(data, config) {
   for (const league of data.leagues) {
@@ -89,6 +100,7 @@ export function annotate(data, config) {
       markExcluded(match.books, config);
       match.awayStats = awayStats(match);
       match.triggered = isTriggered(match.awayStats, config);
+      match.borderline = isBorderline(match.awayStats, config);
       // Inclusi prima, per quota crescente; gli esclusi in fondo.
       match.books.sort((a, b) =>
         (a.excluded ? 1 : 0) - (b.excluded ? 1 : 0) || a.away - b.away);

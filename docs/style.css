@@ -9,6 +9,7 @@
   --hit: #21c07a;
   --hit-bg: rgba(33, 192, 122, .12);
   --warn: #ffb020;
+  --warn-bg: rgba(255, 176, 32, .10);
   --danger: #ff5c5c;
   --radius: 10px;
 }
@@ -367,3 +368,21 @@ dialog button.primary { background: var(--accent); border-color: var(--accent); 
   color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   border-radius: 3px; padding: 0 3px; margin-left: 5px; vertical-align: 1px;
 }
+
+/* ---------- Borderline: la media e' sopra soglia, qualche book e' gia' sotto ---------- */
+.match.warn {
+  border-color: color-mix(in srgb, var(--warn) 60%, transparent);
+  background: linear-gradient(0deg, var(--warn-bg), var(--warn-bg)), var(--panel);
+}
+.badge.warn { background: var(--warn); color: #3a2400; }
+
+/* Pulsante per portare una partita nel registro delle giocate. */
+.to-tracker {
+  margin-left: auto; flex: none;
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--muted);
+  font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 7px; cursor: pointer;
+  white-space: nowrap;
+}
+.to-tracker:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+.to-tracker:disabled { cursor: default; opacity: .6; }
+.to-tracker.ko { border-color: var(--danger); color: var(--danger); }

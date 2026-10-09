@@ -199,6 +199,44 @@ Sui tre campionati, **6 ore è il massimo che il piano gratuito consente**.
 
 ---
 
+## Borderline: i casi al limite
+
+Una partita è in **segnale** (verde) quando la *media* di mercato è ≤ soglia. Ma capita
+spesso che la media sia ancora sopra mentre **qualche bookmaker è già sceso sotto**:
+sono le partite in **borderline** (gialle), quelle che al giro dopo potrebbero
+diventare segnali.
+
+```
+Sassuolo - AC Milan    min 1.72 · media 1.81 · max 1.87 · 9 book sotto 1.80
+```
+
+La distinzione è esattamente quella fra i due modi di alert: `any` le considererebbe
+già segnali, `average` no. Mostrarle in giallo le rende visibili senza allargare la
+regola — e senza mandarti un alert Telegram, che resta riservato ai segnali veri.
+
+Il filtro **Solo segnali e borderline** nasconde tutto il resto, e i contatori sui
+campionati distinguono i due stati: `20 · 3⚑ · 2◐`.
+
+Quando il numero che decide arrotonda esattamente sulla soglia, la pagina scrive
+`media >1.80` invece di `1.80`: altrimenti una partita in borderline con media 1.8035
+sembrerebbe un segnale mancato per errore. Aggiungere decimali non basterebbe, perché
+1.8004 si legge `1.800` e il dubbio resta.
+
+### Portare una partita nel tracker
+
+Ogni partita ha un pulsante **+ Tracker**. I segnali entrano già da soli; il pulsante
+serve per le borderline, o per qualunque partita tu voglia seguire comunque.
+
+La riga nasce **fissata** (📌): non essendo un segnale, senza il pin il tracker la
+toglierebbe al primo allineamento. Il pulsante diventa `✓ nel tracker` quando la
+partita c'è già.
+
+Le due pagine stanno sullo stesso dominio e condividono `localStorage`, quindi la
+scrittura è diretta: i dati non passano da nessuna parte e restano solo in questo
+browser, come tutto il resto del tracker.
+
+---
+
 ## Tendenza della quota
 
 Ogni partita mostra se la quota del "2" sta **scendendo** (▼ verde: squadra ospite
@@ -429,8 +467,8 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-141 test in tutto: `tests/rules.test.html` (49, segnale, tendenza e doppioni),
-`tests/tracker.test.html` (54, tracker e curva) e `tests/results.test.html` (38, risultati
+149 test in tutto: `tests/rules.test.html` (55, segnale, tendenza, doppioni e borderline),
+`tests/tracker.test.html` (56, tracker e curva) e `tests/results.test.html` (38, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 

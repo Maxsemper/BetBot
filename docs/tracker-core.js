@@ -72,8 +72,14 @@ export function newRow(match, leagueLabel, { source = 'auto', now = new Date() }
 export function syncWithSignals(rows, data, now = new Date()) {
   const t = now.getTime();
   const signals = new Map();
+  // Tutte le partite ancora quotate, non solo quelle in segnale: servono a
+  // tenere aggiornato il riferimento di mercato sulle righe che hai fissato
+  // tu. Una borderline portata nel tracker non e' un segnale, ma vuoi
+  // comunque vedere dove sta andando la quota.
+  const inCartellone = new Map();
   for (const league of data?.leagues ?? []) {
     for (const m of league.matches) {
+      inCartellone.set(m.id, { match: m, league: league.label });
       if (m.triggered) signals.set(m.id, { match: m, league: league.label });
     }
   }
@@ -95,7 +101,7 @@ export function syncWithSignals(rows, data, now = new Date()) {
     if (isLocked(row)) {
       // Finche' la partita e' ancora quotata si aggiorna il riferimento di
       // mercato, senza toccare nulla di quello che hai inserito tu.
-      const live = signals.get(row.id);
+      const live = inCartellone.get(row.id);
       out.push(live ? { ...row, signalOdds: round3(num(live.match.awayStats?.avg)) ?? row.signalOdds } : row);
       continue;
     }

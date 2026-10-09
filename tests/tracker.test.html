@@ -480,6 +480,26 @@ t('le annullate compaiono nella curva senza spostarla', () => {
   eq(c.map(p => p.cum), [7.5, 7.5, -2.5], 'la annullata lascia il totale dove sta:');
   eq(c.length, 3, 'ma resta visibile come punto:');
 });
+
+t('una riga fissata ma non in segnale segue comunque il mercato', () => {
+  // Caso di una borderline portata nel tracker: non e' un segnale, ma il
+  // riferimento di mercato deve restare aggiornato.
+  const fissata = { ...newRow(match('1', 'A', 'B', FUTURO, 1.70, 1.90), 'Serie A', { now: NOW }), pinned: true };
+  const nonInSegnale = { leagues: [{ key: 'k', label: 'Serie A', matches: [
+    { ...match('1', 'A', 'B', FUTURO, 1.50, 1.70), triggered: false },
+  ] }] };
+  const { rows } = syncWithSignals([fissata], nonInSegnale, NOW);
+  eq(rows.length, 1, 'non deve sparire:');
+  eq(rows[0].signalOdds, 1.6, 'il riferimento si aggiorna alla media attuale:');
+});
+
+t('una riga fissata su una partita sparita dal feed resta intatta', () => {
+  const fissata = { ...newRow(match('1', 'A', 'B', FUTURO, 1.70, 1.90), 'Serie A', { now: NOW }), pinned: true };
+  const prima = fissata.signalOdds;
+  const { rows } = syncWithSignals([fissata], vuoto, NOW);
+  eq(rows.length, 1);
+  eq(rows[0].signalOdds, prima, 'niente feed, niente aggiornamento:');
+});
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>

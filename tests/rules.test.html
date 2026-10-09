@@ -463,6 +463,59 @@ t('riconoscimento dei bookmaker italiani', () => {
   ok(!isItaliano(''), 'chiave vuota non deve passare:');
   ok(!isItaliano(undefined));
 });
+
+// --- caso limite: qualche book gia' sotto, media ancora sopra ----------------
+
+t('borderline: un book sotto soglia ma la media no', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  const d = dataset([mk('1', 'A', 'B', [1.75, 1.88, 1.92])]);   // media 1.85
+  annotate(d, cfg);
+  const m = d.leagues[0].matches[0];
+  eq(m.triggered, false, 'non e un segnale:');
+  eq(m.borderline, true, 'ma e un caso limite:');
+});
+
+t('un segnale non e anche borderline', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  const d = dataset([mk('1', 'A', 'B', [1.70, 1.74, 1.78])]);
+  annotate(d, cfg);
+  eq(d.leagues[0].matches[0].triggered, true);
+  eq(d.leagues[0].matches[0].borderline, false, 'i due stati si escludono:');
+});
+
+t('se nessun book e sotto soglia non e nemmeno borderline', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  const d = dataset([mk('1', 'A', 'B', [1.90, 1.95, 2.00])]);
+  annotate(d, cfg);
+  eq(d.leagues[0].matches[0].borderline, false);
+});
+
+t('in modo any il borderline non esiste: un book sotto fa gia scattare', () => {
+  const cfg = { threshold: 1.80, alertMode: 'any' };
+  const d = dataset([mk('1', 'A', 'B', [1.75, 1.88, 1.92])]);
+  annotate(d, cfg);
+  eq(d.leagues[0].matches[0].triggered, true);
+  eq(d.leagues[0].matches[0].borderline, false);
+});
+
+t('un book escluso non rende borderline la partita', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average', maxDeviation: 1.30 };
+  const d = dataset([{ id: '1', home: 'A', away: 'B', commenceTime: '2026-09-01T18:00:00Z', books: [
+    { key: 'betfair_ex_eu', title: 'Betfair', home: 2, draw: 3, away: 1.20 },
+    { key: 'pinnacle', title: 'Pinnacle', home: 2, draw: 3, away: 1.95 },
+    { key: 'betclic_fr', title: 'Betclic', home: 2, draw: 3, away: 1.98 },
+  ] }]);
+  annotate(d, cfg);
+  eq(d.leagues[0].matches[0].borderline, false, 'conta solo chi concorre al calcolo:');
+});
+
+t('senza quote non e ne segnale ne borderline', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  const d = dataset([{ id: '1', home: 'A', away: 'B', commenceTime: '2026-09-01T18:00:00Z', books: [] }]);
+  annotate(d, cfg);
+  eq(d.leagues[0].matches[0].borderline, false);
+  eq(d.leagues[0].matches[0].triggered, false);
+});
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>

@@ -1,4 +1,5 @@
 import { isItaliano } from './bookmakers.js';
+import { STORAGE_KEY, SCHEMA_VERSION, newRow } from './tracker-core.js';
 
 // Frontend del monitor: legge i JSON generati dal job e li rende leggibili.
 // Nessuna dipendenza esterna, nessuna chiave API nel browser.
@@ -64,10 +65,13 @@ function renderFilters(data) {
   box.innerHTML = '';
   for (const l of data.leagues) {
     const hits = l.matches.filter(m => m.triggered).length;
+    const quasi = l.matches.filter(m => m.borderline).length;
     const btn = document.createElement('button');
     btn.className = 'chip';
     btn.setAttribute('aria-pressed', String(!state.hidden.has(l.key)));
-    btn.innerHTML = `${esc(l.label)}<span class="count">${l.matches.length}${hits ? ` · ${hits}⚑` : ''}</span>`;
+    btn.innerHTML = `${esc(l.label)}<span class="count">${l.matches.length}`
+      + `${hits ? ` · ${hits}⚑` : ''}${quasi ? ` · ${quasi}◐` : ''}</span>`;
+    btn.title = `${l.matches.length} partite · ${hits} in segnale · ${quasi} borderline`;
     btn.onclick = () => {
       state.hidden.has(l.key) ? state.hidden.delete(l.key) : state.hidden.add(l.key);
       renderFilters(data);
@@ -84,14 +88,16 @@ function renderLeagues(data) {
 
   for (const league of data.leagues) {
     if (state.hidden.has(league.key)) continue;
-    const matches = state.onlyTriggered ? league.matches.filter(m => m.triggered) : league.matches;
+    const matches = state.onlyTriggered
+      ? league.matches.filter(m => m.triggered || m.borderline)
+      : league.matches;
     if (!matches.length) continue;
     shown += matches.length;
 
     const sec = document.createElement('section');
     sec.className = 'league';
     sec.innerHTML = `<h2>${esc(league.label)}</h2>`;
-    for (const m of matches) sec.appendChild(matchCard(m, data.threshold));
+    for (const m of matches) sec.appendChild(matchCard(m, data.threshold, league.label));
     main.appendChild(sec);
   }
 
@@ -149,8 +155,21 @@ function sparkline(tr) {
 function riepilogoQuote(s, under) {
   const modo = state.data?.alertMode ?? 'any';
   const forte = { any: 'min', average: 'avg', best: 'max' }[modo] ?? 'min';
+  // A due decimali una media di 1.8035 si legge "1.80" accanto all'etichetta
+  // BORDERLINE, e sembra un segnale mancato per sbaglio. Aggiungere decimali
+  // non basta (1.8004 diventa "1.800" e si legge uguale), quindi quando il
+  // numero che decide arrotonda sulla soglia si dice da che parte sta.
+  const soglia = state.data?.threshold;
+  const fmtDecisivo = v => {
+    if (typeof v !== 'number') return '—';
+    const base = v.toFixed(2);
+    return (typeof soglia === 'number' && v !== soglia && base === soglia.toFixed(2))
+      ? (v > soglia ? '>' : '<') + base
+      : base;
+  };
+
   const parte = (chiave, etichetta, valore) => (chiave === forte
-    ? `${etichetta} <b>${fmtOdd(valore)}</b>`
+    ? `${etichetta} <b>${fmtDecisivo(valore)}</b>`
     : `${etichetta} ${fmtOdd(valore)}`);
 
   return [
@@ -162,9 +181,70 @@ function riepilogoQuote(s, under) {
   ].filter(Boolean).join(' · ');
 }
 
-function matchCard(m, threshold) {
+// --- Ponte verso il tracker --------------------------------------------------
+// Le due pagine stanno sullo stesso dominio, quindi condividono localStorage:
+// da qui si puo' scrivere nel registro del tracker senza passare da nessuna
+// parte. I dati restano comunque solo in questo browser.
+
+function leggiTracker() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const p = raw ? JSON.parse(raw) : null;
+    return Array.isArray(p?.rows) ? p.rows : [];
+  } catch {
+    return null; // storage non leggibile: finestra privata, dati del sito bloccati
+  }
+}
+
+/**
+ * La riga nasce FISSATA: non e' un segnale, quindi senza il pin il tracker la
+ * toglierebbe al primo allineamento. Portarla li' e' una tua decisione, ed e'
+ * esattamente cio' che il pin significa.
+ */
+function aggiungiAlTracker(m, lega) {
+  const righe = leggiTracker();
+  if (righe === null) return { ok: false, motivo: 'Impossibile accedere ai dati salvati del sito.' };
+  if (righe.some(r => r.id === m.id)) return { ok: false, motivo: 'gia-presente' };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      version: SCHEMA_VERSION,
+      savedAt: new Date().toISOString(),
+      rows: [...righe, { ...newRow(m, lega), pinned: true }],
+    }));
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, motivo: 'Non salvato: ' + e.message };
+  }
+}
+
+function bottoneTracker(m, lega) {
+  const b = document.createElement('button');
+  b.className = 'to-tracker';
+  const giaDentro = (leggiTracker() ?? []).some(r => r.id === m.id);
+
+  const mostraPresente = () => {
+    b.textContent = '✓ nel tracker';
+    b.disabled = true;
+    b.title = 'Questa partita è già nel registro delle giocate.';
+  };
+
+  if (giaDentro) mostraPresente();
+  else {
+    b.textContent = '+ Tracker';
+    b.title = 'Aggiunge la partita al tracker, fissata: non uscirà più da sola al variare della quota.';
+    b.onclick = e => {
+      e.stopPropagation();          // non deve aprire/chiudere la scheda
+      const esito = aggiungiAlTracker(m, lega);
+      if (esito.ok || esito.motivo === 'gia-presente') mostraPresente();
+      else { b.textContent = '✕ errore'; b.title = esito.motivo; b.classList.add('ko'); }
+    };
+  }
+  return b;
+}
+
+function matchCard(m, threshold, lega) {
   const el = document.createElement('article');
-  el.className = 'match' + (m.triggered ? ' hit' : '');
+  el.className = 'match' + (m.triggered ? ' hit' : m.borderline ? ' warn' : '');
 
   const s = m.awayStats ?? {};
   const under = m.books.filter(b => !b.excluded && b.away <= threshold).length;
@@ -176,12 +256,16 @@ function matchCard(m, threshold) {
         : ''}</div>
       <div class="teams">${esc(m.home)} <span style="opacity:.5">–</span> <span class="away">${esc(m.away)}</span></div>
       <div class="summary">
-        ${m.triggered ? '<span class="badge">SEGNALE</span>' : ''}
+        ${m.triggered ? '<span class="badge">SEGNALE</span>'
+          : m.borderline ? `<span class="badge warn" title="La media di mercato è ancora sopra ${fmtOdd(threshold)}, ma ${under === 1 ? 'un bookmaker è' : under + ' bookmaker sono'} già sceso${under === 1 ? '' : 'i'} sotto. Potrebbe diventare un segnale.">BORDERLINE</span>`
+          : ''}
         ${trendBadge(tr)}
         ${sparkline(tr)}
         <span class="best">${riepilogoQuote(s, under)}</span>
       </div>
     </div>`;
+
+  el.querySelector('.summary').appendChild(bottoneTracker(m, lega));
 
   const books = document.createElement('div');
   books.className = 'books';
