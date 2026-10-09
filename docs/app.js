@@ -155,21 +155,12 @@ function sparkline(tr) {
 function riepilogoQuote(s, under) {
   const modo = state.data?.alertMode ?? 'any';
   const forte = { any: 'min', average: 'avg', best: 'max' }[modo] ?? 'min';
-  // A due decimali una media di 1.8035 si legge "1.80" accanto all'etichetta
-  // BORDERLINE, e sembra un segnale mancato per sbaglio. Aggiungere decimali
-  // non basta (1.8004 diventa "1.800" e si legge uguale), quindi quando il
-  // numero che decide arrotonda sulla soglia si dice da che parte sta.
-  const soglia = state.data?.threshold;
-  const fmtDecisivo = v => {
-    if (typeof v !== 'number') return '—';
-    const base = v.toFixed(2);
-    return (typeof soglia === 'number' && v !== soglia && base === soglia.toFixed(2))
-      ? (v > soglia ? '>' : '<') + base
-      : base;
-  };
-
+  // Nessuna indicazione "maggiore/minore di": la soglia si confronta con la
+  // quota arrotondata al centesimo, quindi il numero mostrato e' esattamente
+  // quello che decide. Vedere 1.80 e non trovare il segnale non puo' piu'
+  // succedere.
   const parte = (chiave, etichetta, valore) => (chiave === forte
-    ? `${etichetta} <b>${fmtDecisivo(valore)}</b>`
+    ? `${etichetta} <b>${fmtOdd(valore)}</b>`
     : `${etichetta} ${fmtOdd(valore)}`);
 
   return [

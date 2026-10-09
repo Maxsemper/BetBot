@@ -75,12 +75,26 @@ export function awayStats(match) {
 export function isTriggered(stats, { threshold, alertMode }) {
   if (!stats) return false;
   switch (alertMode) {
-    case 'best':    return stats.max <= threshold;
-    case 'average': return stats.avg <= threshold;
+    case 'best':    return aDueDecimali(stats.max) <= threshold;
+    case 'average': return aDueDecimali(stats.avg) <= threshold;
     case 'any':
-    default:        return stats.min <= threshold;
+    default:        return aDueDecimali(stats.min) <= threshold;
   }
 }
+
+/**
+ * Il confronto con la soglia si fa sulla quota arrotondata al centesimo, cioe'
+ * sullo stesso numero che la pagina mostra. Una media di 1.8004 si legge 1.80
+ * ed e' in target: senza arrotondare sarebbe stata esclusa per quattro
+ * decimillesimi, e la pagina avrebbe mostrato "1.80" accanto a una partita
+ * non segnalata.
+ *
+ * Si passa dalla stringa, non da Math.round, perche' e' la stessa conversione
+ * che usa la pagina: cosi' cio' che vedi e cio' che decide non possono
+ * divergere nemmeno sui casi a meta' strada.
+ */
+export const aDueDecimali = v =>
+  (typeof v === 'number' && Number.isFinite(v) ? Number(v.toFixed(2)) : v);
 
 /**
  * Caso limite: non e' ancora un segnale, ma almeno un bookmaker e' gia' sceso
@@ -90,7 +104,7 @@ export function isTriggered(stats, { threshold, alertMode }) {
  */
 export function isBorderline(stats, config) {
   if (!stats) return false;
-  return stats.min <= config.threshold && !isTriggered(stats, config);
+  return aDueDecimali(stats.min) <= config.threshold && !isTriggered(stats, config);
 }
 
 /** Arricchisce ogni partita con esclusioni, statistiche e flag di trigger. */

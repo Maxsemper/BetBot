@@ -217,10 +217,14 @@ regola — e senza mandarti un alert Telegram, che resta riservato ai segnali ve
 Il filtro **Solo segnali e borderline** nasconde tutto il resto, e i contatori sui
 campionati distinguono i due stati: `20 · 3⚑ · 2◐`.
 
-Quando il numero che decide arrotonda esattamente sulla soglia, la pagina scrive
-`media >1.80` invece di `1.80`: altrimenti una partita in borderline con media 1.8035
-sembrerebbe un segnale mancato per errore. Aggiungere decimali non basterebbe, perché
-1.8004 si legge `1.800` e il dubbio resta.
+Il confronto con la soglia usa la quota **arrotondata al centesimo**, cioè lo stesso
+numero che la pagina mostra: una media di 1.8004 si legge 1.80 ed è in target. Vedere
+`1.80` e non trovare il segnale non può succedere.
+
+Non è solo una convenzione di lettura: sommando quote decimali in virgola mobile,
+la media di Troyes - RC Lens veniva `1.8000000000000005`, e la vecchia regola la
+escludeva per cinque decimilionesimi di miliardesimo. L'arrotondamento toglie di
+mezzo anche quello.
 
 ### Portare una partita nel tracker
 
@@ -467,7 +471,8 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-149 test in tutto: `tests/rules.test.html` (55, segnale, tendenza, doppioni e borderline),
+155 test in tutto: `tests/rules.test.html` (61, segnale, tendenza, doppioni, borderline
+e arrotondamento),
 `tests/tracker.test.html` (56, tracker e curva) e `tests/results.test.html` (38, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:

@@ -516,6 +516,59 @@ t('senza quote non e ne segnale ne borderline', () => {
   eq(d.leagues[0].matches[0].borderline, false);
   eq(d.leagues[0].matches[0].triggered, false);
 });
+
+// --- arrotondamento al centesimo ---------------------------------------------
+// La soglia si confronta con la quota come la vedi in pagina, non con tutti i
+// suoi decimali: 1.8004 si legge 1.80 ed e' in target.
+
+t('una media appena sopra soglia che arrotonda a 1.80 e in target', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  eq(isTriggered({ min: 1.7, max: 1.9, avg: 1.8004, count: 10 }, cfg), true, '1.8004:');
+  eq(isTriggered({ min: 1.7, max: 1.9, avg: 1.8035, count: 10 }, cfg), true, '1.8035:');
+  eq(isTriggered({ min: 1.7, max: 1.9, avg: 1.8049, count: 10 }, cfg), true, '1.8049:');
+});
+
+t('oltre il mezzo centesimo si arrotonda per eccesso e resta fuori', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  eq(isTriggered({ min: 1.7, max: 1.9, avg: 1.8051, count: 10 }, cfg), false, '1.8051 -> 1.81:');
+  eq(isTriggered({ min: 1.7, max: 1.9, avg: 1.81, count: 10 }, cfg), false);
+  eq(isTriggered({ min: 1.7, max: 1.9, avg: 1.9, count: 10 }, cfg), false);
+});
+
+t('l arrotondamento non toglie mai un segnale che c era gia', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  eq(isTriggered({ min: 1.5, max: 1.7, avg: 1.7951, count: 10 }, cfg), true, '1.7951 -> 1.80:');
+  eq(isTriggered({ min: 1.5, max: 1.7, avg: 1.80, count: 10 }, cfg), true, 'soglia esatta:');
+  eq(isTriggered({ min: 1.5, max: 1.7, avg: 1.60, count: 10 }, cfg), true);
+});
+
+t('vale anche per gli altri modi di alert', () => {
+  eq(isTriggered({ min: 1.8004, max: 2.1, avg: 1.95, count: 10 },
+    { threshold: 1.80, alertMode: 'any' }), true, 'modo any sul minimo:');
+  eq(isTriggered({ min: 1.5, max: 1.8004, avg: 1.65, count: 10 },
+    { threshold: 1.80, alertMode: 'best' }), true, 'modo best sul massimo:');
+});
+
+t('cio che la pagina mostra e cio che decide coincidono', () => {
+  // Il numero mostrato e' valore.toFixed(2): se si legge 1.80 la partita deve
+  // essere un segnale, altrimenti sembra un errore.
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  for (const avg of [1.7951, 1.7999, 1.80, 1.8004, 1.8035, 1.8049]) {
+    const mostrato = avg.toFixed(2);
+    const segnale = isTriggered({ min: 1.5, max: 1.9, avg, count: 10 }, cfg);
+    eq(segnale, Number(mostrato) <= 1.80, `${avg} mostrato come ${mostrato}:`);
+  }
+});
+
+t('una partita che arrotonda in target non e borderline', () => {
+  const cfg = { threshold: 1.80, alertMode: 'average' };
+  const d = dataset([mk('1', 'A', 'B', [1.73, 1.80, 1.8705])]);   // media 1.8002
+  annotate(d, cfg);
+  const m = d.leagues[0].matches[0];
+  eq(m.awayStats.avg.toFixed(2), '1.80');
+  eq(m.triggered, true, 'arrotonda a 1.80, quindi e segnale:');
+  eq(m.borderline, false);
+});
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>
