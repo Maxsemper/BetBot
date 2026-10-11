@@ -1,6 +1,171 @@
 {
-  "updatedAt": "2026-10-11T12:00:48.485Z",
+  "updatedAt": "2026-10-11T21:24:48.960Z",
   "items": [
+    {
+      "id": "63af660d4d0d52f8ac7685172ef939c4",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Lecce",
+      "away": "Juventus",
+      "commenceTime": "2026-10-25T17:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.35
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.37
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.38
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.42
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.42
+        },
+        {
+          "key": "sport888",
+          "title": "888sport",
+          "away": 1.44
+        }
+      ],
+      "booksUnderThreshold": 10,
+      "bookCount": 10,
+      "bestAway": 1.5,
+      "minAway": 1.35,
+      "avgAway": 1.423,
+      "trend": null,
+      "notifiedAt": "2026-10-11T21:24:48.959Z"
+    },
+    {
+      "id": "3564688383b255192409c9deb8e526ed",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Udinese",
+      "away": "AC Milan",
+      "commenceTime": "2026-10-25T19:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.65
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.66
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.69
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.74
+        },
+        {
+          "key": "sport888",
+          "title": "888sport",
+          "away": 1.75
+        },
+        {
+          "key": "williamhill",
+          "title": "William Hill",
+          "away": 1.75
+        }
+      ],
+      "booksUnderThreshold": 8,
+      "bookCount": 10,
+      "bestAway": 1.83,
+      "minAway": 1.65,
+      "avgAway": 1.7429999999999999,
+      "trend": null,
+      "notifiedAt": "2026-10-11T21:24:48.959Z"
+    },
+    {
+      "id": "b077aa049133c0358bcd643bfee48da3",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Troyes",
+      "away": "RC Lens",
+      "commenceTime": "2026-10-17T18:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.7
+        },
+        {
+          "key": "everygame",
+          "title": "Everygame",
+          "away": 1.75
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.75
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.76
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.76
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.78
+        }
+      ],
+      "booksUnderThreshold": 9,
+      "bookCount": 21,
+      "bestAway": 1.87,
+      "minAway": 1.7,
+      "avgAway": 1.8042857142857143,
+      "trend": {
+        "direction": "flat",
+        "delta": -0.008,
+        "deltaPct": -0.44,
+        "fromOpen": 0.006,
+        "fromOpenPct": 0.33,
+        "open": 1.798,
+        "openedAt": "2026-10-06T04:35:54.000Z",
+        "previousAt": "2026-10-11T12:00:48.000Z",
+        "samples": 14,
+        "spark": [
+          1.797,
+          1.801,
+          1.802,
+          1.804,
+          1.8,
+          1.801,
+          1.802,
+          1.804,
+          1.806,
+          1.807,
+          1.812,
+          1.804
+        ]
+      },
+      "notifiedAt": "2026-10-11T21:24:48.959Z"
+    },
     {
       "id": "6436925dd15916d7041ba32b60000d48",
       "league": "La Liga",
