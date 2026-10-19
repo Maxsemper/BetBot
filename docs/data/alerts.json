@@ -1,6 +1,68 @@
 {
-  "updatedAt": "2026-10-19T11:58:05.341Z",
+  "updatedAt": "2026-10-19T18:32:10.291Z",
   "items": [
+    {
+      "id": "005711684f3e51024ac40c1ee69978e9",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Levante",
+      "away": "Atlético Madrid",
+      "commenceTime": "2026-10-31T13:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.47
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.49
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.5
+        },
+        {
+          "key": "betsson",
+          "title": "Betsson",
+          "away": 1.52
+        },
+        {
+          "key": "nordicbet",
+          "title": "Nordic Bet",
+          "away": 1.52
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.52
+        }
+      ],
+      "booksUnderThreshold": 10,
+      "bookCount": 10,
+      "bestAway": 1.6,
+      "minAway": 1.47,
+      "avgAway": 1.526,
+      "trend": {
+        "direction": "flat",
+        "delta": 0,
+        "deltaPct": 0,
+        "fromOpen": -0.035,
+        "fromOpenPct": -2.24,
+        "open": 1.561,
+        "openedAt": "2026-10-18T20:00:17.000Z",
+        "previousAt": "2026-10-19T03:01:26.000Z",
+        "samples": 3,
+        "spark": [
+          1.561,
+          1.526,
+          1.526
+        ]
+      },
+      "notifiedAt": "2026-10-19T18:32:10.289Z"
+    },
     {
       "id": "7d989a0a7bae47eb957731e97c5bd9c1",
       "league": "Serie A",
