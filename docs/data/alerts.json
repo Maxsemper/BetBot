@@ -1,6 +1,77 @@
 {
-  "updatedAt": "2026-10-25T10:36:34.183Z",
+  "updatedAt": "2026-10-25T15:28:09.263Z",
   "items": [
+    {
+      "id": "3564688383b255192409c9deb8e526ed",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Udinese",
+      "away": "AC Milan",
+      "commenceTime": "2026-10-25T19:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.7
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.71
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.74
+        },
+        {
+          "key": "leovegas_se",
+          "title": "LeoVegas (SE)",
+          "away": 1.74
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.74
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.77
+        }
+      ],
+      "booksUnderThreshold": 11,
+      "bookCount": 21,
+      "bestAway": 1.87,
+      "minAway": 1.7,
+      "avgAway": 1.7985714285714285,
+      "trend": {
+        "direction": "flat",
+        "delta": -0.008,
+        "deltaPct": -0.44,
+        "fromOpen": 0.056,
+        "fromOpenPct": 3.21,
+        "open": 1.743,
+        "openedAt": "2026-10-11T21:24:48.000Z",
+        "previousAt": "2026-10-25T10:36:33.000Z",
+        "samples": 40,
+        "spark": [
+          1.659,
+          1.669,
+          1.672,
+          1.67,
+          1.672,
+          1.665,
+          1.663,
+          1.785,
+          1.746,
+          1.72,
+          1.807,
+          1.799
+        ]
+      },
+      "notifiedAt": "2026-10-25T15:28:09.260Z"
+    },
     {
       "id": "abec89862e33762414fcb8b2232aba08",
       "league": "Serie A",
