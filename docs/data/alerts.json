@@ -1,6 +1,226 @@
 {
-  "updatedAt": "2026-10-25T20:19:24.003Z",
+  "updatedAt": "2026-10-26T02:57:13.919Z",
   "items": [
+    {
+      "id": "34cd26b96f78bd7aa3dbff3d1daca7a7",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Udinese",
+      "away": "AS Roma",
+      "commenceTime": "2026-10-31T17:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.5
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.52
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.52
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.56
+        },
+        {
+          "key": "gtbets",
+          "title": "GTbets",
+          "away": 1.59
+        },
+        {
+          "key": "sport888",
+          "title": "888sport",
+          "away": 1.61
+        }
+      ],
+      "booksUnderThreshold": 11,
+      "bookCount": 11,
+      "bestAway": 1.66,
+      "minAway": 1.5,
+      "avgAway": 1.5872727272727274,
+      "trend": null,
+      "notifiedAt": "2026-10-26T02:57:13.917Z"
+    },
+    {
+      "id": "5b386dfdf6f76705116fbb4120ee8493",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Valencia",
+      "away": "Real Madrid",
+      "commenceTime": "2026-11-07T20:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.28
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.28
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.28
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.33
+        },
+        {
+          "key": "williamhill",
+          "title": "William Hill",
+          "away": 1.33
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.33
+        }
+      ],
+      "booksUnderThreshold": 8,
+      "bookCount": 8,
+      "bestAway": 1.37,
+      "minAway": 1.28,
+      "avgAway": 1.32,
+      "trend": null,
+      "notifiedAt": "2026-10-26T02:57:13.917Z"
+    },
+    {
+      "id": "c35673eb1e889309d6985c091a43a3f5",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Elche CF",
+      "away": "Real Betis",
+      "commenceTime": "2026-11-08T13:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.66
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.68
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.72
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.74
+        }
+      ],
+      "booksUnderThreshold": 4,
+      "bookCount": 8,
+      "bestAway": 1.95,
+      "minAway": 1.66,
+      "avgAway": 1.7925,
+      "trend": null,
+      "notifiedAt": "2026-10-26T02:57:13.917Z"
+    },
+    {
+      "id": "dd247b356d8fc53e4b4f9bfcfe09c924",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Atlético Madrid",
+      "away": "Barcelona",
+      "commenceTime": "2026-11-08T20:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.66
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.67
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.74
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.8
+        },
+        {
+          "key": "williamhill",
+          "title": "William Hill",
+          "away": 1.8
+        }
+      ],
+      "booksUnderThreshold": 5,
+      "bookCount": 7,
+      "bestAway": 1.86,
+      "minAway": 1.66,
+      "avgAway": 1.77,
+      "trend": null,
+      "notifiedAt": "2026-10-26T02:57:13.917Z"
+    },
+    {
+      "id": "a529e5762f18d97981194ec3668dc3d3",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Le Mans FC",
+      "away": "AS Monaco",
+      "commenceTime": "2026-11-08T16:15:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.54
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.56
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.57
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.6
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.67
+        },
+        {
+          "key": "pinnacle",
+          "title": "Pinnacle",
+          "away": 1.71
+        }
+      ],
+      "booksUnderThreshold": 10,
+      "bookCount": 10,
+      "bestAway": 1.8,
+      "minAway": 1.54,
+      "avgAway": 1.67,
+      "trend": null,
+      "notifiedAt": "2026-10-26T02:57:13.917Z"
+    },
     {
       "id": "3564688383b255192409c9deb8e526ed",
       "league": "Serie A",
