@@ -156,10 +156,19 @@ export async function updateResults(previous, data, now = new Date(), deps = {})
     if (t - Date.parse(r.commenceTime) > CONSERVA_MS) delete results[id];
   }
 
+  // Quando la fonte risultati si e' rotta, il guasto e' rimasto invisibile per
+  // sei settimane: finiva solo nei log del job, che nessuno legge. Ora lo stato
+  // viaggia nel registro, cosi' la pagina puo' dirlo.
+  const arretrate = Object.values(pending)
+    .filter(p => t - Date.parse(p.commenceTime) > DOPO_FISCHIO_MS).length;
+  const ultimaRisoluzione = Object.values(results)
+    .map(r => r.resolvedAt).filter(Boolean).sort().pop() ?? null;
+
   return {
     registry: {
       updatedAt: now.toISOString(),
       source: NAME,
+      salute: { errori: errors, arretrate, ultimaRisoluzione },
       results,
       recent,
       pending,

@@ -384,6 +384,17 @@ richiede chiave: `scripts/results/espn.mjs`. Il job la interroga solo per i
 campionati che hanno partite finite e ancora senza punteggio — nei giri in cui non
 c'è niente da risolvere non fa nessuna chiamata.
 
+Si interroga **per mese** (`dates=AAAAMM`), non per intervallo di date: a metà
+settembre 2026 ESPN ha smesso di accettare `dates=inizio-fine` e risponde 400 a
+qualunque intervallo. Una finestra di 45 giorni sono due o tre chiamate invece di
+quarantasei.
+
+Se la fonte smette di rispondere, il tracker **lo dice**: il registro porta con sé
+lo stato di salute (errori, partite arretrate, ultimo recupero riuscito) e la pagina
+mostra un avviso rosso. Senza, un guasto resta invisibile — è già successo: la fonte
+si è rotta il 15 settembre e nessuno se n'è accorto per sei settimane, perché
+l'errore finiva solo nei log del job.
+
 Due garanzie:
 
 - **Un esito che hai messo tu non viene mai sovrascritto.** Se correggi un esito
@@ -471,9 +482,9 @@ Feed con quote bet365 reali (a pagamento): [odds-api.io](https://odds-api.io/spo
 
 ## Test
 
-155 test in tutto: `tests/rules.test.html` (61, segnale, tendenza, doppioni, borderline
+160 test in tutto: `tests/rules.test.html` (61, segnale, tendenza, doppioni, borderline
 e arrotondamento),
-`tests/tracker.test.html` (56, tracker e curva) e `tests/results.test.html` (38, risultati
+`tests/tracker.test.html` (56, tracker e curva) e `tests/results.test.html` (43, risultati
 e abbinamento nomi). Vanno aperti **da un server HTTP** (i moduli ES non si caricano da
 `file://`). Il più semplice, senza installare nulla, con PowerShell:
 

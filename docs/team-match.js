@@ -87,19 +87,29 @@ export function sameTeam(a, b) {
   return corto.every(w => lungo.includes(w));
 }
 
-const GIORNO = 24 * 60 * 60 * 1000;
+/**
+ * Quanto possono distare le due date perche' siano la stessa partita.
+ *
+ * Tre giorni, non uno: il feed delle quote e quello dei risultati non
+ * concordano sull'orario — e' lo stesso disaccordo che produce i doppioni di
+ * calendario. Toulouse - Troyes era datata 24 ottobre dalle quote e 25 alle
+ * 16:15 da ESPN, venticinque ore, e restava non abbinata. Allargare non crea
+ * ambiguita': due squadre non si incontrano due volte in tre giorni, e
+ * findFixture rifiuta comunque i casi con piu' di un candidato.
+ */
+const TOLLERANZA_DATA_MS = 3 * 24 * 60 * 60 * 1000;
 
 /**
  * Cerca fra i risultati quello corrispondente a una partita.
  *
- * Devono coincidere entrambe le squadre, nel verso giusto, e la data entro un
- * giorno (i fusi orari e i rinvii di poche ore non devono far fallire
- * l'abbinamento). Se i candidati sono piu' di uno la partita si considera
- * NON abbinata: meglio nessun risultato che quello sbagliato.
+ * Devono coincidere entrambe le squadre, nel verso giusto, e la data entro la
+ * tolleranza: fusi orari, rinvii e disaccordi fra i due feed non devono far
+ * fallire l'abbinamento. Se i candidati sono piu' di uno la partita si
+ * considera NON abbinata: meglio nessun risultato che quello sbagliato.
  *
  * @returns {object|null}
  */
-export function findFixture(match, fixtures, toleranceMs = GIORNO) {
+export function findFixture(match, fixtures, toleranceMs = TOLLERANZA_DATA_MS) {
   const t = Date.parse(match.commenceTime);
   const candidati = fixtures.filter(f =>
     sameTeam(f.home, match.home) &&

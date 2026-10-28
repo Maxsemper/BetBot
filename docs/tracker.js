@@ -92,6 +92,36 @@ async function fetchJson(path) {
 }
 
 /** Avvisa quali esiti sono stati compilati da soli, senza interrompere nulla. */
+/**
+ * Avvisa quando il recupero automatico degli esiti si e' rotto.
+ *
+ * Esiste perche' e' gia' successo: a meta' settembre la fonte risultati ha
+ * smesso di rispondere e nessuno se n'e' accorto per sei settimane, perche'
+ * l'errore finiva solo nei log del job. Un guasto silenzioso che toglie una
+ * funzione deve essere visibile dove la funzione si usa.
+ */
+function segnalaGuastoRisultati(registry) {
+  const s = registry?.salute;
+  if (!s) return;
+  const giorniFermo = s.ultimaRisoluzione
+    ? Math.floor((Date.now() - Date.parse(s.ultimaRisoluzione)) / 86400e3) : null;
+
+  let msg = null;
+  if (s.errori?.length) {
+    msg = `La fonte dei risultati non risponde (${esc(s.errori[0])}). `
+      + 'Gli esiti non si compilano da soli finché non torna: puoi inserirli a mano.';
+  } else if (s.arretrate >= 5 && giorniFermo !== null && giorniFermo >= 3) {
+    msg = `${s.arretrate} partite sono finite ma senza risultato, e l’ultimo recupero `
+      + `riuscito risale a ${giorniFermo} giorni fa. Qualcosa non sta funzionando.`;
+  }
+  if (!msg) return;
+
+  const el = $('#autoNote');
+  el.hidden = false;
+  el.classList.add('ko');
+  el.innerHTML = msg;
+}
+
 function notifyFilled(n) {
   const el = $('#autoNote');
   el.hidden = false;
@@ -118,6 +148,7 @@ async function init() {
     const { rows, filled } = applyResults(state.rows, results);
     state.rows = rows;
     if (filled.length) notifyFilled(filled.length);
+    segnalaGuastoRisultati(results);
   }
 
   if (data || results) save();

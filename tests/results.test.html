@@ -3,6 +3,7 @@
 import { tokens, sameTeam, findFixture, outcomeForAway } from '../docs/team-match.js';
 import { applyResults, profitLoss, RESULTS } from '../docs/tracker-core.js';
 import { updateResults } from '../scripts/results.mjs';
+import { mesiCoperti } from '../scripts/results/espn.mjs';
 
 const log = [];
 let fails = 0;
@@ -377,6 +378,43 @@ await t('"Barca" e "Barça" abbinano il Barcelona', async () => {
   ok(sameTeam('Barca', 'Barcelona'));
   ok(sameTeam('Barça', 'Barcelona'), 'la cediglia cade con gli accenti');
   ok(!sameTeam('Barca', 'Bari'), 'ma non qualunque cosa inizi per bar');
+});
+
+await t('la finestra si traduce nei mesi che tocca', async () => {
+  // ESPN non accetta piu' gli intervalli di date: si interroga per mese.
+  eq(mesiCoperti(new Date('2026-10-05T00:00:00Z'), new Date('2026-10-20T00:00:00Z')), ['202610'],
+    'dentro lo stesso mese basta una chiamata:');
+  eq(mesiCoperti(new Date('2026-09-13T00:00:00Z'), new Date('2026-10-29T00:00:00Z')), ['202609', '202610'],
+    'a cavallo di due mesi:');
+  eq(mesiCoperti(new Date('2026-09-13T00:00:00Z'), new Date('2026-11-02T00:00:00Z')), ['202609', '202610', '202611'],
+    'una finestra di 45 giorni ne tocca al massimo tre:');
+});
+
+await t('il passaggio di anno non rompe la sequenza dei mesi', async () => {
+  eq(mesiCoperti(new Date('2026-12-20T00:00:00Z'), new Date('2027-01-10T00:00:00Z')), ['202612', '202701']);
+});
+
+await t('stesso giorno: un mese solo', async () => {
+  eq(mesiCoperti(new Date('2026-10-25T12:00:00Z'), new Date('2026-10-25T18:00:00Z')), ['202610']);
+});
+
+await t('un giorno di scarto fra i due feed non impedisce l abbinamento', async () => {
+  // Caso reale: le quote davano Toulouse - Troyes il 24 ottobre, ESPN il 25
+  // alle 16:15. Venticinque ore, e con la vecchia tolleranza di un giorno la
+  // partita restava senza risultato.
+  const fixtures = [fx('Toulouse', 'Troyes', '2026-10-25T16:15Z', 2, 1)];
+  ok(findFixture({ home: 'Toulouse', away: 'Troyes', commenceTime: '2026-10-24T15:00:00Z' }, fixtures),
+    'venticinque ore devono bastare');
+});
+
+await t('la stessa tolleranza vale per il job e per le righe a mano', async () => {
+  const fixtures = [fx('Elche', 'Barcelona', '2026-08-23T19:30Z', 0, 5)];
+  const con = ore => findFixture(
+    { home: 'Elche', away: 'Barcelona', commenceTime: new Date(Date.parse('2026-08-23T19:30Z') + ore*3600e3).toISOString() },
+    fixtures);
+  ok(con(48), 'due giorni:');
+  ok(con(-48), 'due giorni prima:');
+  ok(!con(96), 'quattro giorni no:');
 });
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');

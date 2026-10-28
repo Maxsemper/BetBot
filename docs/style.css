@@ -386,3 +386,8 @@ dialog button.primary { background: var(--accent); border-color: var(--accent); 
 .to-tracker:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
 .to-tracker:disabled { cursor: default; opacity: .6; }
 .to-tracker.ko { border-color: var(--danger); color: var(--danger); }
+/* Avviso di guasto: la fonte dei risultati non risponde. */
+.auto-note.ko {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--danger) 35%, transparent);
+}
