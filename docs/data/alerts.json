@@ -1,6 +1,100 @@
 {
-  "updatedAt": "2026-11-01T04:01:29.875Z",
+  "updatedAt": "2026-11-01T12:35:36.559Z",
   "items": [
+    {
+      "id": "813cc4970b2dcab8457490a332fb5a6c",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Parma",
+      "away": "Bologna",
+      "commenceTime": "2026-11-07T17:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.65
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.68
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.71
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.76
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.76
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.77
+        }
+      ],
+      "booksUnderThreshold": 9,
+      "bookCount": 16,
+      "bestAway": 1.89,
+      "minAway": 1.65,
+      "avgAway": 1.7931250000000003,
+      "trend": null,
+      "notifiedAt": "2026-11-01T12:35:36.557Z"
+    },
+    {
+      "id": "7a68b099b47ed7724062b661cd9af464",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Genoa",
+      "away": "AC Milan",
+      "commenceTime": "2026-11-08T14:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.62
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.64
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.67
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.72
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.72
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.74
+        }
+      ],
+      "booksUnderThreshold": 13,
+      "bookCount": 15,
+      "bestAway": 1.83,
+      "minAway": 1.62,
+      "avgAway": 1.7433333333333332,
+      "trend": null,
+      "notifiedAt": "2026-11-01T12:35:36.557Z"
+    },
     {
       "id": "34cd26b96f78bd7aa3dbff3d1daca7a7",
       "league": "Serie A",
