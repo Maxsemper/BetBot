@@ -1,6 +1,77 @@
 {
-  "updatedAt": "2026-11-05T23:12:26.571Z",
+  "updatedAt": "2026-11-06T04:52:47.522Z",
   "items": [
+    {
+      "id": "dd247b356d8fc53e4b4f9bfcfe09c924",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Atlético Madrid",
+      "away": "Barcelona",
+      "commenceTime": "2026-11-08T20:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.7
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.71
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.74
+        },
+        {
+          "key": "everygame",
+          "title": "Everygame",
+          "away": 1.75
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.75
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.76
+        }
+      ],
+      "booksUnderThreshold": 9,
+      "bookCount": 18,
+      "bestAway": 1.9,
+      "minAway": 1.7,
+      "avgAway": 1.801111111111111,
+      "trend": {
+        "direction": "flat",
+        "delta": -0.015,
+        "deltaPct": -0.83,
+        "fromOpen": 0.031,
+        "fromOpenPct": 1.75,
+        "open": 1.77,
+        "openedAt": "2026-10-26T02:57:13.000Z",
+        "previousAt": "2026-11-05T23:12:25.000Z",
+        "samples": 24,
+        "spark": [
+          1.826,
+          1.833,
+          1.848,
+          1.86,
+          1.844,
+          1.825,
+          1.817,
+          1.821,
+          1.824,
+          1.822,
+          1.816,
+          1.801
+        ]
+      },
+      "notifiedAt": "2026-11-06T04:52:47.521Z"
+    },
     {
       "id": "8553a80cf1ae5cbe3e7a69b76ce8167f",
       "league": "Ligue 1",
