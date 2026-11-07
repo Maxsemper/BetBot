@@ -1,6 +1,100 @@
 {
-  "updatedAt": "2026-11-07T12:21:12.834Z",
+  "updatedAt": "2026-11-07T21:23:03.261Z",
   "items": [
+    {
+      "id": "cb513fd9869c9aa6ce506bb499bcd48b",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Parma",
+      "away": "AS Roma",
+      "commenceTime": "2026-11-21T17:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.27
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.31
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.32
+        },
+        {
+          "key": "nordicbet",
+          "title": "Nordic Bet",
+          "away": 1.35
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.35
+        },
+        {
+          "key": "sport888",
+          "title": "888sport",
+          "away": 1.36
+        }
+      ],
+      "booksUnderThreshold": 12,
+      "bookCount": 12,
+      "bestAway": 1.4,
+      "minAway": 1.27,
+      "avgAway": 1.348333333333333,
+      "trend": null,
+      "notifiedAt": "2026-11-07T21:23:03.260Z"
+    },
+    {
+      "id": "651c1847b5cdcc85e60a140edd2282c4",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Nice",
+      "away": "Paris Saint Germain",
+      "commenceTime": "2026-11-21T16:15:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.33
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.38
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.4
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.4
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.42
+        },
+        {
+          "key": "unibet_nl",
+          "title": "Unibet (NL)",
+          "away": 1.43
+        }
+      ],
+      "booksUnderThreshold": 16,
+      "bookCount": 16,
+      "bestAway": 1.5,
+      "minAway": 1.33,
+      "avgAway": 1.4324999999999999,
+      "trend": null,
+      "notifiedAt": "2026-11-07T21:23:03.260Z"
+    },
     {
       "id": "813cc4970b2dcab8457490a332fb5a6c",
       "league": "Serie A",
