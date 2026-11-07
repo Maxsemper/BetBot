@@ -1,6 +1,77 @@
 {
-  "updatedAt": "2026-11-07T04:24:11.638Z",
+  "updatedAt": "2026-11-07T12:21:12.834Z",
   "items": [
+    {
+      "id": "813cc4970b2dcab8457490a332fb5a6c",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Parma",
+      "away": "Bologna",
+      "commenceTime": "2026-11-07T17:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.54
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.62
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.65
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.67
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.68
+        },
+        {
+          "key": "sport888",
+          "title": "888sport",
+          "away": 1.7
+        }
+      ],
+      "booksUnderThreshold": 22,
+      "bookCount": 22,
+      "bestAway": 1.8,
+      "minAway": 1.54,
+      "avgAway": 1.7149999999999999,
+      "trend": {
+        "direction": "down",
+        "delta": -0.106,
+        "deltaPct": -5.82,
+        "fromOpen": -0.078,
+        "fromOpenPct": -4.35,
+        "open": 1.793,
+        "openedAt": "2026-11-01T12:35:35.000Z",
+        "previousAt": "2026-11-07T04:24:11.000Z",
+        "samples": 16,
+        "spark": [
+          1.83,
+          1.833,
+          1.834,
+          1.832,
+          1.824,
+          1.825,
+          1.821,
+          1.823,
+          1.822,
+          1.823,
+          1.821,
+          1.715
+        ]
+      },
+      "notifiedAt": "2026-11-07T12:21:12.832Z"
+    },
     {
       "id": "dd247b356d8fc53e4b4f9bfcfe09c924",
       "league": "La Liga",
