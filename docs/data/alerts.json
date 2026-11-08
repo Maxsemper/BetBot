@@ -1,6 +1,100 @@
 {
-  "updatedAt": "2026-11-08T12:40:09.804Z",
+  "updatedAt": "2026-11-08T21:37:36.676Z",
   "items": [
+    {
+      "id": "e22f82b10fe71d230248b88fef87e58f",
+      "league": "Serie A",
+      "leagueKey": "soccer_italy_serie_a",
+      "home": "Atalanta BC",
+      "away": "Inter Milan",
+      "commenceTime": "2026-11-22T19:45:00Z",
+      "matchingBooks": [
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.45
+        },
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.5
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.52
+        },
+        {
+          "key": "everygame",
+          "title": "Everygame",
+          "away": 1.57
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.57
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.58
+        }
+      ],
+      "booksUnderThreshold": 11,
+      "bookCount": 11,
+      "bestAway": 1.7,
+      "minAway": 1.45,
+      "avgAway": 1.5772727272727274,
+      "trend": null,
+      "notifiedAt": "2026-11-08T21:37:36.675Z"
+    },
+    {
+      "id": "7a62fe738bd20cfff6027c52fec05d51",
+      "league": "La Liga",
+      "leagueKey": "soccer_spain_la_liga",
+      "home": "Getafe",
+      "away": "Atlético Madrid",
+      "commenceTime": "2026-11-22T20:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.52
+        },
+        {
+          "key": "betclic_fr",
+          "title": "Betclic (FR)",
+          "away": 1.54
+        },
+        {
+          "key": "betsson",
+          "title": "Betsson",
+          "away": 1.6
+        },
+        {
+          "key": "everygame",
+          "title": "Everygame",
+          "away": 1.6
+        },
+        {
+          "key": "nordicbet",
+          "title": "Nordic Bet",
+          "away": 1.6
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.6
+        }
+      ],
+      "booksUnderThreshold": 10,
+      "bookCount": 10,
+      "bestAway": 1.7,
+      "minAway": 1.52,
+      "avgAway": 1.6049999999999998,
+      "trend": null,
+      "notifiedAt": "2026-11-08T21:37:36.675Z"
+    },
     {
       "id": "cb513fd9869c9aa6ce506bb499bcd48b",
       "league": "Serie A",
