@@ -287,7 +287,7 @@ function renderAlerts(alerts) {
   if (!items.length) return;
   $('#alertsSection').hidden = false;
   $('#alertsList').innerHTML = items.slice(0, 30).map(a => `
-    <li>${esc(fmtTime(a.notifiedAt ?? a.commenceTime))} — <b>${esc(a.league)}</b>:
+    <li>${esc(fmtTime(a.commenceTime))} — <b>${esc(a.league)}</b>:
     ${esc(a.home)} – <b>${esc(a.away)}</b> · quota 2 da <b>${fmtOdd(a.minAway)}</b>
     ${a.trend ? trendBadge(a.trend) : ''}
     (${esc(a.matchingBooks.map(b => b.title).join(', '))})</li>`).join('');
