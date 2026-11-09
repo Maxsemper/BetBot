@@ -8,7 +8,7 @@ import { writeFile, readFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 import { CONFIG } from './config.mjs';
-import { annotate, collectTriggered, diffAgainstState } from './rules.mjs';
+import { annotate, collectTriggered, diffAgainstState, trackAlertedMatches } from './rules.mjs';
 import { appendSamples, attachTrends } from './history.mjs';
 import { updateResults } from './results.mjs';
 // >>> Per cambiare sorgente quote, sostituisci solo questa riga. <<<
@@ -70,10 +70,12 @@ async function main() {
   for (const e of resultErrors) console.warn(`  fonte risultati non raggiungibile — ${e}`);
 
   const alertHistory = await readJson(config.paths.alerts, { items: [] });
-  const items = [
+  // Sull'avviso piu' recente di ogni partita resta l'ultimo stato letto prima
+  // del via: serve al tracker per sapere se al calcio d'inizio era in target.
+  const items = trackAlertedMatches([
     ...fresh.map(a => ({ ...a, notifiedAt: new Date().toISOString() })),
     ...alertHistory.items,
-  ].slice(0, MAX_ALERT_HISTORY);
+  ], data).slice(0, MAX_ALERT_HISTORY);
 
   data.threshold = config.threshold;
   data.alertMode = config.alertMode;

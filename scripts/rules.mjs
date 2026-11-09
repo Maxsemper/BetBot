@@ -158,6 +158,38 @@ export function collectTriggered(data, config) {
  * a ogni giro. Una partita che risale sopra soglia esce dallo stato e potra'
  * quindi ri-allertare se in seguito rientra.
  */
+/**
+ * Tiene aggiornato, sull'avviso piu' recente di ogni partita, l'ultimo stato di
+ * mercato letto prima del via: media del "2", migliore quota e se era in target.
+ * Il tracker lo usa per sapere com'era una partita al calcio d'inizio anche se
+ * non e' stato aperto in quel periodo. Dopo il via non si tocca piu' nulla.
+ *
+ * `items` va dal piu' recente al piu' vecchio. Non muta l'input.
+ */
+export function trackAlertedMatches(items, data, now = new Date()) {
+  const t = now.getTime();
+  const live = new Map();
+  for (const league of data?.leagues ?? []) {
+    for (const m of league.matches ?? []) {
+      if (Date.parse(m.commenceTime) > t) live.set(m.id, m);
+    }
+  }
+  const done = new Set();
+  return items.map(a => {
+    if (!a || done.has(a.id)) return a;
+    done.add(a.id);
+    const m = live.get(a.id);
+    if (!m) return a;
+    return {
+      ...a,
+      lastAvg: m.awayStats?.avg ?? a.lastAvg ?? null,
+      lastBest: m.awayStats?.max ?? a.lastBest ?? null,
+      lastInTarget: Boolean(m.triggered),
+      lastSeenAt: now.toISOString(),
+    };
+  });
+}
+
 export function diffAgainstState(triggered, previousState) {
   const active = previousState?.active ?? {};
   const nextActive = {};

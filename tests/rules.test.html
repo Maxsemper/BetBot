@@ -1,6 +1,6 @@
 <!doctype html><meta charset="utf-8"><title>test rules</title><body><pre id="out">running…</pre>
 <script type="module">
-import { awayStats, isTriggered, annotate, collectTriggered, diffAgainstState, markExcluded, includedBooks } from '../scripts/rules.mjs';
+import { awayStats, isTriggered, annotate, collectTriggered, diffAgainstState, trackAlertedMatches, markExcluded, includedBooks } from '../scripts/rules.mjs';
 import { buildMessage } from '../scripts/alerts/telegram.mjs';
 import { appendSamples, computeTrend, attachTrends } from '../scripts/history.mjs';
 import { unisciDoppioni } from '../scripts/providers/the-odds-api.mjs';
@@ -569,6 +569,37 @@ t('una partita che arrotonda in target non e borderline', () => {
   eq(m.triggered, true, 'arrotonda a 1.80, quindi e segnale:');
   eq(m.borderline, false);
 });
+
+// --- ultima lettura di mercato sugli avvisi ----------------------------------
+{
+  const ORA = new Date('2026-11-07T12:21:00Z');
+  const partita = (id, when, avg, max, triggered) =>
+    ({ id, commenceTime: when, triggered, awayStats: { avg, max } });
+  const dati = { leagues: [{ matches: [
+    partita('pb', '2026-11-07T17:00:00Z', 1.83, 1.95, false),
+    partita('gia', '2026-11-07T11:00:00Z', 1.5, 1.6, true),
+  ] }] };
+
+  t("trackAlertedMatches: aggiorna solo l'avviso piu' recente della partita", () => {
+    const items = [{ id: 'pb', n: 2 }, { id: 'pb', n: 1 }];
+    const out = trackAlertedMatches(items, dati, ORA);
+    eq([out[0].lastAvg, out[0].lastBest, out[0].lastInTarget, out[0].lastSeenAt],
+      [1.83, 1.95, false, ORA.toISOString()]);
+    eq(out[1], { id: 'pb', n: 1 }, 'il vecchio avviso resta com’era:');
+    eq(items[0].lastAvg, undefined, 'input non mutato:');
+  });
+
+  t('trackAlertedMatches: dopo il via la lettura non si tocca piu', () => {
+    const items = [{ id: 'gia', lastAvg: 1.7, lastInTarget: true }];
+    eq(trackAlertedMatches(items, dati, ORA), items);
+  });
+
+  t('trackAlertedMatches: partita assente dal feed o dati mancanti', () => {
+    const items = [{ id: 'altro' }, null];
+    eq(trackAlertedMatches(items, dati, ORA), items);
+    eq(trackAlertedMatches(items, null, ORA), items);
+  });
+}
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>

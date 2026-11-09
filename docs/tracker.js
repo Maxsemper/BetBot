@@ -9,13 +9,16 @@
 
 import {
   STORAGE_KEY, SCHEMA_VERSION, RESULTS,
-  syncWithSignals, profitLoss, summarize, summarizeByLeague,
+  syncWithSignals, addFromAlerts, profitLoss, summarize, summarizeByLeague,
   isLocked, isPlayed, toCsv, parseBackup, newRow, applyResults,
   computedProfitLoss, hasPlOverride, equityCurve,
 } from './tracker-core.js';
 import { renderEquityChart } from './equity-chart.js';
 
-const state = { rows: [], hidden: new Set(), onlyPlayed: false, hideSettled: false, threshold: null };
+// dismissed: id delle partite che hai tolto tu, perche' non rientrino dallo
+// storico avvisi o da un nuovo segnale.
+const state = { rows: [], dismissed: [], hidden: new Set(), onlyPlayed: false, hideSettled: false, threshold: null };
+const MAX_DISMISSED = 300;
 
 /** Testo della spiegazione per una riga fuori target. */
 function offTargetTitle(row) {
@@ -73,11 +76,15 @@ const pct = n => (n == null ? '—' : (n < 0 ? '−' : '') + Math.abs(n).toFixed
 // localStorage puo' non essere disponibile (finestra privata, dati del sito
 // bloccati): in quel caso il tracker resta usabile per la sessione, ma va detto.
 
+const readDismissed = obj => (Array.isArray(obj?.dismissed)
+  ? obj.dismissed.filter(id => typeof id === 'string') : []);
+
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
+    state.dismissed = readDismissed(parsed);
     return Array.isArray(parsed?.rows) ? parsed.rows : [];
   } catch (e) {
     warnStorage('Impossibile leggere i dati salvati: ' + e.message);
@@ -89,6 +96,7 @@ function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       version: SCHEMA_VERSION, savedAt: new Date().toISOString(), rows: state.rows,
+      dismissed: state.dismissed.slice(-MAX_DISMISSED),
     }));
   } catch (e) {
     warnStorage('Le modifiche NON sono state salvate: ' + e.message
@@ -152,18 +160,39 @@ function notifyFilled(n) {
     : `${n} esiti compilati automaticamente dai risultati delle partite. Puoi correggerli se non tornano.`;
 }
 
+/** Elenca le partite arrivate dallo storico avvisi mentre il tracker era chiuso. */
+function notifyAdded(rows) {
+  const el = $('#addedNote');
+  el.hidden = false;
+  const nomi = rows.map(r => `${r.home} – ${r.away}`).join(', ');
+  el.textContent = (rows.length === 1
+    ? '1 partita è entrata in target mentre il tracker era chiuso: '
+    : `${rows.length} partite sono entrate in target mentre il tracker era chiuso: `)
+    + nomi + '.';
+}
+
 async function init() {
   state.rows = load();
 
-  const [data, results] = await Promise.all([
+  const [data, results, alerts] = await Promise.all([
     fetchJson('data/odds.json'),
     fetchJson('data/results.json'),
+    fetchJson('data/alerts.json'),
   ]);
 
-  if (data) {
-    state.rows = syncWithSignals(state.rows, data).rows;
-    if (typeof data.threshold === 'number') state.threshold = data.threshold;
+  // Prima le partite entrate in target mentre il tracker era chiuso, poi il
+  // sync: aggiorna quelle ancora da giocare e congela quelle gia' iniziate.
+  if (alerts) {
+    const { rows, added } = addFromAlerts(state.rows, alerts, { dismissed: state.dismissed });
+    state.rows = rows;
+    if (added.length) notifyAdded(added);
   }
+
+  if (data || alerts) {
+    state.rows = syncWithSignals(state.rows, data ?? { leagues: [] }, new Date(),
+      { dismissed: state.dismissed }).rows;
+  }
+  if (typeof data?.threshold === 'number') state.threshold = data.threshold;
   notifyOffTarget();
 
   // Gli esiti delle partite giocate arrivano da soli. Va fatto dopo il sync,
@@ -175,7 +204,7 @@ async function init() {
     segnalaGuastoRisultati(results);
   }
 
-  if (data || results) save();
+  if (data || results || alerts) save();
 
   renderFilters(data);
   render();
@@ -420,6 +449,7 @@ function renderRow(row) {
     const label = `${row.home} – ${row.away}`;
     if (isPlayed(row) && !confirm(`Rimuovere ${label}? Ha uno stake registrato: il dato va perso.`)) return;
     state.rows = state.rows.filter(r => r.id !== row.id);
+    if (!state.dismissed.includes(row.id)) state.dismissed.push(row.id);
     commit();
   };
 
@@ -446,7 +476,8 @@ $('#exportCsv').onclick = () => {
 
 $('#exportJson').onclick = () => {
   download(`tracker-backup-${stamp()}.json`,
-    JSON.stringify({ version: SCHEMA_VERSION, savedAt: new Date().toISOString(), rows: state.rows }, null, 2),
+    JSON.stringify({ version: SCHEMA_VERSION, savedAt: new Date().toISOString(), rows: state.rows,
+      dismissed: state.dismissed }, null, 2),
     'application/json');
 };
 
@@ -456,9 +487,13 @@ $('#importFile').onchange = async e => {
   const file = e.target.files?.[0];
   if (!file) return;
   try {
-    const rows = parseBackup(await file.text());
+    const text = await file.text();
+    const rows = parseBackup(text);
     if (!confirm(`Il backup contiene ${rows.length} partite e sostituira’ le ${state.rows.length} attuali. Procedere?`)) return;
     state.rows = rows;
+    // I backup vecchi non hanno l'elenco delle partite tolte: si tiene quello attuale.
+    const tolte = readDismissed(JSON.parse(text));
+    if (tolte.length) state.dismissed = tolte;
     commit();
   } catch (err) {
     alert('Backup non valido: ' + err.message);

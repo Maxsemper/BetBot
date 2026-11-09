@@ -197,10 +197,17 @@ function aggiungiAlTracker(m, lega) {
   if (righe === null) return { ok: false, motivo: 'Impossibile accedere ai dati salvati del sito.' };
   if (righe.some(r => r.id === m.id)) return { ok: false, motivo: 'gia-presente' };
   try {
+    // Si conservano gli altri campi del salvataggio (es. le partite tolte):
+    // questa e' rimessa dentro da te, quindi esce da quell'elenco.
+    let prima = {};
+    try { prima = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {}; } catch { /* vuoto */ }
+    const tolte = Array.isArray(prima.dismissed) ? prima.dismissed.filter(id => id !== m.id) : [];
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...prima,
       version: SCHEMA_VERSION,
       savedAt: new Date().toISOString(),
       rows: [...righe, { ...newRow(m, lega), pinned: true }],
+      dismissed: tolte,
     }));
     return { ok: true };
   } catch (e) {

@@ -4,6 +4,7 @@ import {
   syncWithSignals, profitLoss, summarize, summarizeByLeague,
   hasUserData, isLocked, isPlayed, toCsv, parseBackup, newRow, RESULTS,
   computedProfitLoss, hasPlOverride, applyResults, equityCurve,
+  addFromAlerts, ALERTS_LOOKBACK_DAYS,
 } from '../docs/tracker-core.js';
 
 const log = [];
@@ -537,6 +538,82 @@ t('una riga fissata su una partita sparita dal feed resta intatta', () => {
   eq(rows.length, 1);
   eq(rows[0].signalOdds, prima, 'niente feed, niente aggiornamento:');
 });
+// --- partite entrate in target a tracker chiuso (da alerts.json) -------------
+
+// Caso reale: Parma-Bologna, 07/11/2026. Due avvisi, il piu' recente in cima.
+const A_NOW = new Date('2026-11-09T09:00:00Z');
+const avviso = (over = {}) => ({
+  id: 'pb', league: 'Serie A', home: 'Parma', away: 'Bologna',
+  commenceTime: '2026-11-07T17:00:00Z', notifiedAt: '2026-11-07T12:21:12Z',
+  bestAway: 1.8, avgAway: 1.715, ...over,
+});
+const storicoPB = { items: [avviso(), avviso({ notifiedAt: '2026-11-01T12:35:36Z', bestAway: 1.89, avgAway: 1.793 })] };
+
+t('avvisi: una partita entrata in target a tracker chiuso viene aggiunta, una volta sola', () => {
+  const { rows, added } = addFromAlerts([], storicoPB, { now: A_NOW });
+  eq(added.length, 1);
+  eq([rows[0].home, rows[0].away, rows[0].league, rows[0].source], ['Parma', 'Bologna', 'Serie A', 'auto']);
+  eq(rows[0].signalAt, '2026-11-07T12:21:12.000Z', 'dall\'avviso piu\' recente:');
+  eq(rows[0].stake, null);
+});
+
+t('avvisi: poi il sync la congela e l\'esito si compila da solo', () => {
+  const r1 = addFromAlerts([], storicoPB, { now: A_NOW }).rows;
+  const r2 = syncWithSignals(r1, vuoto, A_NOW).rows;
+  ok(r2[0].frozen, 'gia\' iniziata, quindi storica:');
+  const reg = { results: { pb: { homeScore: 1, awayScore: 2, status: 'full_time', outcomeAway: 'win' } } };
+  eq(applyResults(r2, reg).rows[0].result, 'win');
+  eq(summarize(r2).giocate, 0, 'senza stake non entra nei conti:');
+});
+
+t('avvisi: si usa l\'ultima lettura del job prima del via', () => {
+  const conLettura = { items: [avviso({ lastAvg: 1.83, lastBest: 1.95, lastInTarget: false })] };
+  const r = addFromAlerts([], conLettura, { now: A_NOW }).rows[0];
+  eq([r.signalOdds, r.odds, r.offTarget], [1.83, 1.95, true]);
+  const inTarget = addFromAlerts([], { items: [avviso({ lastAvg: 1.7, lastInTarget: true })] }, { now: A_NOW }).rows[0];
+  eq(inTarget.offTarget, false);
+});
+
+t('avvisi: sugli avvisi vecchi senza lettura lo stato al via e\' sconosciuto', () => {
+  eq(addFromAlerts([], storicoPB, { now: A_NOW }).rows[0].offTarget, null);
+});
+
+t('avvisi: una partita futura entra e il sync ne aggiorna lo stato', () => {
+  const futura = { items: [avviso({ commenceTime: FUTURO, notifiedAt: '2026-08-26T06:00:00Z' })] };
+  const r1 = addFromAlerts([], futura, { now: NOW }).rows;
+  eq(r1[0].frozen, false);
+  const live = feed({ ...match('pb', 'Parma', 'Bologna', FUTURO, 1.78, 1.95), triggered: false });
+  const r2 = syncWithSignals(r1, live, NOW).rows;
+  eq([r2.length, r2[0].offTarget, r2[0].signalOdds], [1, true, 1.865]);
+});
+
+t('avvisi: una partita gia\' nel tracker non viene duplicata ne\' toccata', () => {
+  const mia = { ...newRow({ id: 'pb', home: 'Parma', away: 'Bologna', commenceTime: '2026-11-07T17:00:00Z',
+    awayStats: { max: 1.9, avg: 1.79 } }, 'Serie A', { now: NOW }), frozen: true, stake: 10 };
+  const { rows, added } = addFromAlerts([mia], storicoPB, { now: A_NOW });
+  eq(added.length, 0);
+  eq(rows, [mia]);
+});
+
+t('avvisi: una partita tolta da te non rientra, ne\' dallo storico ne\' dal sync', () => {
+  eq(addFromAlerts([], storicoPB, { now: A_NOW, dismissed: ['pb'] }).added.length, 0);
+  const { added } = syncWithSignals([], feed(match('pb', 'Parma', 'Bologna')), NOW, { dismissed: ['pb'] });
+  eq(added.length, 0);
+});
+
+t('avvisi: le partite piu\' vecchie del limite non vengono aggiunte', () => {
+  const vecchio = new Date(Date.parse(A_NOW) - (ALERTS_LOOKBACK_DAYS + 1) * 86400e3).toISOString();
+  eq(addFromAlerts([], { items: [avviso({ commenceTime: vecchio })] }, { now: A_NOW }).added.length, 0);
+});
+
+t('avvisi: righe ordinate per data e file malformato o assente tollerato', () => {
+  const dopo = { ...newRow({ id: 'x', home: 'A', away: 'B', commenceTime: '2026-11-08T17:00:00Z',
+    awayStats: {} }, 'Serie A', { now: NOW }), frozen: true };
+  const { rows } = addFromAlerts([dopo], { items: [null, { id: 3 }, ...storicoPB.items] }, { now: A_NOW });
+  eq(rows.map(r => r.id), ['pb', 'x']);
+  eq(addFromAlerts([], null, { now: A_NOW }).added.length, 0);
+});
+
 document.getElementById('out').textContent =
   log.join('\n') + '\n\n' + (fails ? fails + ' TEST FALLITI' : 'tutti i test passati (' + log.length + ')');
 </script>

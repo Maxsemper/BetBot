@@ -73,7 +73,8 @@ export function newRow(match, leagueLabel, { source = 'auto', now = new Date() }
  *
  * @returns {{rows: Array, added: Array, removed: Array, frozen: Array, offTarget: Array}}
  */
-export function syncWithSignals(rows, data, now = new Date()) {
+export function syncWithSignals(rows, data, now = new Date(), { dismissed = [] } = {}) {
+  const tolte = new Set(dismissed);
   const t = now.getTime();
   const signals = new Map();
   // Tutte le partite ancora quotate, non solo quelle in segnale: servono a
@@ -121,7 +122,7 @@ export function syncWithSignals(rows, data, now = new Date()) {
 
   const present = new Set(out.map(r => r.id));
   for (const [id, { match, league }] of signals) {
-    if (present.has(id)) continue;
+    if (present.has(id) || tolte.has(id)) continue; // tolta da te: non torna
     if (Date.parse(match.commenceTime) <= t) continue; // gia' iniziata: non la si aggiunge ora
     const row = newRow(match, league, { now });
     out.push(row);
@@ -130,6 +131,62 @@ export function syncWithSignals(rows, data, now = new Date()) {
 
   out.sort((a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime));
   return { rows: out, added, removed, frozen, offTarget };
+}
+
+// Quanto indietro si recuperano le partite dallo storico avvisi. Lo storico
+// arriva a 200 voci (mesi): senza limite la prima apertura riempirebbe il
+// tracker di partite vecchie.
+export const ALERTS_LOOKBACK_DAYS = 14;
+
+/**
+ * Aggiunge le partite entrate in target mentre il tracker era chiuso.
+ *
+ * Il job registra in alerts.json ogni partita che entra in target; qui si
+ * aggiungono quelle che il tracker non ha ancora (e che non hai tolto tu).
+ * Va chiamata PRIMA di syncWithSignals: il sync poi aggiorna la quota delle
+ * partite ancora da giocare e congela quelle gia' iniziate.
+ *
+ * Lo stato "fuori target" viene dall'ultima lettura del job prima del via
+ * (lastInTarget). Sugli avvisi scritti prima che il job la registrasse non si
+ * sa: offTarget resta null, cioe' sconosciuto, e non viene mostrato.
+ *
+ * @returns {{rows: Array, added: Array}}
+ */
+export function addFromAlerts(rows, alerts, { now = new Date(), dismissed = [] } = {}) {
+  const t = now.getTime();
+  const from = t - ALERTS_LOOKBACK_DAYS * 86400e3;
+  const skip = new Set([...rows.map(r => r.id), ...dismissed]);
+
+  // Avviso piu' recente per partita (lo storico puo' contenerne piu' d'uno).
+  const latest = new Map();
+  for (const a of alerts?.items ?? []) {
+    if (!a || typeof a.id !== 'string' || skip.has(a.id)) continue;
+    const kickoff = Date.parse(a.commenceTime);
+    if (!Number.isFinite(kickoff) || kickoff < from) continue;
+    const prev = latest.get(a.id);
+    if (!prev || Date.parse(a.notifiedAt) > Date.parse(prev.notifiedAt)) latest.set(a.id, a);
+  }
+
+  const added = [...latest.values()].map(a => {
+    const avg = num(a.lastAvg) ?? num(a.avgAway);
+    const best = num(a.lastBest) ?? num(a.bestAway);
+    const row = newRow(
+      { id: a.id, home: a.home, away: a.away, commenceTime: a.commenceTime,
+        awayStats: { max: best, avg } },
+      a.league,
+      { now: Number.isFinite(Date.parse(a.notifiedAt)) ? new Date(a.notifiedAt) : now },
+    );
+    return {
+      ...row,
+      offTarget: typeof a.lastInTarget === 'boolean' ? !a.lastInTarget : null,
+      updatedAt: now.toISOString(),
+    };
+  });
+
+  if (!added.length) return { rows, added };
+  const out = [...rows, ...added]
+    .sort((a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime));
+  return { rows: out, added };
 }
 
 /**

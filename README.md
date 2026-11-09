@@ -279,7 +279,12 @@ stesso riepilogo diviso per campionato.
 
 ### Come entrano ed escono le partite
 
-Le partite sotto soglia entrano **da sole** e non escono più da sole: le togli tu con ✕.
+Le partite sotto soglia entrano **da sole** e non escono più da sole: le togli tu con ✕
+(e una partita tolta non rientra più). Entrano **anche se il tracker era chiuso**: a ogni
+apertura legge `data/alerts.json` e aggiunge le partite entrate in target negli ultimi
+14 giorni che non ha ancora; quelle già giocate arrivano come storiche, con l'esito.
+Il job annota sull'avviso l'ultima lettura prima del via (`lastAvg`, `lastBest`,
+`lastInTarget`), così si sa se al calcio d'inizio la partita era ancora in target.
 Se la quota media risale sopra soglia la riga resta, con l'etichetta **fuori target**
 (e un avviso in cima alla pagina con la media attuale): decidi tu se giocarla lo stesso.
 Se la quota ci ridiscende l'etichetta sparisce. Al calcio d'inizio la riga conserva lo
