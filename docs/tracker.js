@@ -15,7 +15,29 @@ import {
 } from './tracker-core.js';
 import { renderEquityChart } from './equity-chart.js';
 
-const state = { rows: [], hidden: new Set(), onlyPlayed: false, hideSettled: false };
+const state = { rows: [], hidden: new Set(), onlyPlayed: false, hideSettled: false, threshold: null };
+
+/** Testo della spiegazione per una riga fuori target. */
+function offTargetTitle(row) {
+  const media = row.signalOdds ? row.signalOdds.toFixed(2) : '—';
+  const soglia = state.threshold ? ` (soglia ${state.threshold.toFixed(2)})` : '';
+  return row.frozen
+    ? `Al calcio d’inizio la quota media era ${media}${soglia}: sopra soglia, segnale non più in target.`
+    : `La quota media è risalita a ${media}${soglia}: non è più in target. Decidi tu se giocarla lo stesso o rimuoverla.`;
+}
+
+/** Avviso in cima: le partite ancora da giocare che sono uscite dal target. */
+function notifyOffTarget() {
+  const el = $('#offTargetNote');
+  const fuori = state.rows.filter(r => r.offTarget && !r.frozen && r.source !== 'manual');
+  el.hidden = !fuori.length;
+  if (!fuori.length) return;
+  const elenco = fuori.map(r => `${r.home} – ${r.away} (media ${r.signalOdds?.toFixed(2) ?? '—'})`).join(', ');
+  el.textContent = (fuori.length === 1
+    ? 'Quota non più in target: '
+    : `${fuori.length} partite con quota non più in target: `)
+    + elenco + '. Restano nel tracker: decidi tu se giocarle o rimuoverle.';
+}
 
 const MISS_TITLE = 'La partita è finita ma il risultato non è stato trovato in automatico. '
   + 'Di solito il nome di una squadra è scritto in un modo che il sistema non riconosce, '
@@ -140,7 +162,9 @@ async function init() {
 
   if (data) {
     state.rows = syncWithSignals(state.rows, data).rows;
+    if (typeof data.threshold === 'number') state.threshold = data.threshold;
   }
+  notifyOffTarget();
 
   // Gli esiti delle partite giocate arrivano da soli. Va fatto dopo il sync,
   // perche' il sync congela le righe iniziate e questo le compila.
@@ -159,6 +183,7 @@ async function init() {
 
 function commit() {
   save();
+  notifyOffTarget(); // una riga rimossa non deve restare nell'avviso
   render();
 }
 
@@ -297,12 +322,13 @@ function renderRow(row) {
   tr.className = [
     row.result ? 'settled' : '',
     row.frozen ? 'frozen' : '',
+    row.offTarget && !row.frozen ? 'off-target' : '',
     pl > 0 ? 'pos-row' : pl < 0 ? 'neg-row' : '',
   ].filter(Boolean).join(' ');
 
   const stato = row.frozen ? 'Partita giocata: la riga resta nello storico.'
     : locked ? 'Fissata: non segue piu’ i cambi di quota.'
-    : 'Automatica: esce dal tracker se la quota risale sopra soglia.';
+    : 'Automatica: segue la quota di mercato. Se risale sopra soglia resta qui, con un avviso.';
 
   tr.innerHTML = `
     <td class="c-pin">
@@ -317,6 +343,7 @@ function renderRow(row) {
       ${row.score ? `<span class="score" title="${esc(SCORE_TITLE[row.score.status] ?? 'Risultato finale')}">${row.score.home}–${row.score.away}</span>` : ''}
       ${row.signalOdds ? `<span class="hint" title="Quota media dei bookmaker al momento del segnale. Confrontala con la tua quota per vedere se hai preso meglio o peggio del mercato.">segnale ${row.signalOdds.toFixed(2)}</span>` : ''}
       ${row.source === 'manual' ? '<span class="hint">manuale</span>' : ''}
+      ${row.offTarget ? `<span class="off-tag" title="${esc(offTargetTitle(row))}">fuori target</span>` : ''}
     </td>
     <td class="c-when">${esc(fmtDate(row.commenceTime))}</td>
     <td class="c-result">

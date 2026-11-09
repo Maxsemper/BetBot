@@ -279,8 +279,11 @@ stesso riepilogo diviso per campionato.
 
 ### Come entrano ed escono le partite
 
-Le partite sotto soglia entrano **da sole**, e finché non le tocchi restano libere
-di uscire: se la partita non è più sotto soglia la riga sparisce, se ci rientra torna.
+Le partite sotto soglia entrano **da sole** e non escono più da sole: le togli tu con ✕.
+Se la quota media risale sopra soglia la riga resta, con l'etichetta **fuori target**
+(e un avviso in cima alla pagina con la media attuale): decidi tu se giocarla lo stesso.
+Se la quota ci ridiscende l'etichetta sparisce. Al calcio d'inizio la riga conserva lo
+stato che aveva, così nello storico si vede se al via era ancora in target.
 
 Una riga si **blocca** — e non si muove più — in tre casi:
 

@@ -49,19 +49,56 @@ t('la quota proposta e la migliore del mercato, il riferimento e la media', () =
   eq(rows[0].signalOdds, 1.675, 'riferimento = media dei bookmaker, non il minimo:');
 });
 
-t('una riga automatica esce se la partita non e piu sotto soglia', () => {
+// La partita e' ancora quotata ma la media e' risalita sopra soglia.
+const fuoriTarget = (min = 1.78, max = 1.95) =>
+  feed({ ...match('1', 'A', 'B', FUTURO, min, max), triggered: false });
+
+t('se la quota risale sopra soglia la riga resta, marcata fuori target', () => {
   const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
-  const { rows: r2, removed } = syncWithSignals(r1, vuoto, NOW);
-  eq(r2.length, 0);
-  eq(removed.length, 1);
+  eq(r1[0].offTarget, false, 'appena entrata e in target:');
+  const { rows: r2, removed, offTarget } = syncWithSignals(r1, fuoriTarget(), NOW);
+  eq(r2.length, 1, 'non deve sparire:');
+  eq(removed.length, 0);
+  eq(r2[0].offTarget, true);
+  eq(offTarget.length, 1);
 });
 
-t('e rientra se la quota ci ridiscende', () => {
+t('fuori target la riga mostra la media attuale, per decidere', () => {
   const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
-  const { rows: r2 } = syncWithSignals(r1, vuoto, NOW);
+  const { rows: r2 } = syncWithSignals(r1, fuoriTarget(1.78, 1.95), NOW);
+  eq(r2[0].signalOdds, 1.865, 'media di 1.78 e 1.95:');
+  eq(r2[0].odds, 1.95, 'riga automatica: la quota proposta segue il mercato:');
+});
+
+t('se la quota ci ridiscende il segno fuori target sparisce, senza duplicati', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  const { rows: r2 } = syncWithSignals(r1, fuoriTarget(), NOW);
   const { rows: r3, added } = syncWithSignals(r2, feed(match('1', 'A', 'B')), NOW);
   eq(r3.length, 1);
-  eq(added.length, 1);
+  eq(added.length, 0);
+  eq(r3[0].offTarget, false);
+});
+
+t('una partita sparita dal feed prima del via resta com\'era', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  const { rows: r2, removed } = syncWithSignals(r1, vuoto, NOW);
+  eq(r2, r1, 'nessuna lettura nuova, nessun cambio:');
+  eq(removed.length, 0);
+});
+
+t('al via una riga fuori target resta tale nello storico', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  const { rows: r2 } = syncWithSignals(r1, fuoriTarget(), NOW);
+  const dopo = new Date(Date.parse(FUTURO) + 60e3);
+  const { rows: r3 } = syncWithSignals(r2, vuoto, dopo);
+  eq([r3[0].frozen, r3[0].offTarget], [true, true]);
+});
+
+t('una riga con stake fuori target conserva la tua quota', () => {
+  const { rows: r1 } = syncWithSignals([], feed(match('1', 'A', 'B')), NOW);
+  r1[0].stake = 10; r1[0].odds = 1.74;
+  const { rows: r2 } = syncWithSignals(r1, fuoriTarget(), NOW);
+  eq([r2[0].odds, r2[0].offTarget], [1.74, true]);
 });
 
 t('la quota di una riga automatica si aggiorna al variare del mercato', () => {

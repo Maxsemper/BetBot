@@ -36,6 +36,8 @@ export function newRow(match, leagueLabel, { source = 'auto', now = new Date() }
     source,
     pinned: source === 'manual',
     frozen: false,
+    // La quota media e' risalita sopra soglia dopo il segnale: vedi syncWithSignals.
+    offTarget: false,
     // Quota proposta: la migliore disponibile al momento del segnale. Resta
     // modificabile, perche' quella che conta e' quella che hai davvero ottenuto.
     odds: num(match.awayStats?.max),
@@ -58,13 +60,18 @@ export function newRow(match, leagueLabel, { source = 'auto', now = new Date() }
  * Allinea le righe ai segnali correnti.
  *
  * Regole:
- *  - una riga bloccata (fissata, con tuoi dati, o storica) non viene mai rimossa;
- *  - una riga automatica non bloccata segue i segnali: sparisce se la partita
- *    non e' piu' sotto soglia, ricompare se ci rientra;
+ *  - una partita che entra in segnale entra nel tracker e non ne esce piu' da
+ *    sola: la togli tu, se vuoi;
+ *  - se la quota media risale sopra soglia la riga resta, marcata offTarget,
+ *    cosi' decidi tu se giocarla lo stesso; se ci rientra il segno sparisce;
+ *  - una riga automatica segue il mercato (quota migliore e media), una
+ *    bloccata (fissata o con tuoi dati) aggiorna solo la media;
  *  - al fischio d'inizio ogni riga viene congelata: da li' in poi e' storia, e
- *    resta anche quando la partita sparisce dal feed delle quote.
+ *    conserva lo stato che aveva al via (in target o no).
  *
- * @returns {{rows: Array, added: Array, removed: Array, frozen: Array}}
+ * `removed` resta nel risultato per compatibilita': ora e' sempre vuoto.
+ *
+ * @returns {{rows: Array, added: Array, removed: Array, frozen: Array, offTarget: Array}}
  */
 export function syncWithSignals(rows, data, now = new Date()) {
   const t = now.getTime();
@@ -85,6 +92,7 @@ export function syncWithSignals(rows, data, now = new Date()) {
   const added = [];
   const removed = [];
   const frozen = [];
+  const offTarget = [];
 
   for (const row of rows) {
     const started = Date.parse(row.commenceTime) <= t;
@@ -94,25 +102,21 @@ export function syncWithSignals(rows, data, now = new Date()) {
       frozen.push(row);
       continue;
     }
+    if (row.frozen) { out.push(row); continue; }
 
-    if (isLocked(row)) {
-      // Finche' la partita e' ancora quotata si aggiorna il riferimento di
-      // mercato, senza toccare nulla di quello che hai inserito tu.
-      const live = inCartellone.get(row.id);
-      out.push(live ? { ...row, signalOdds: round3(num(live.match.awayStats?.avg)) ?? row.signalOdds } : row);
-      continue;
-    }
+    // Partita non piu' nel feed (o riga manuale): nessuna lettura nuova, la
+    // riga resta com'e'.
+    const live = inCartellone.get(row.id);
+    if (!live) { out.push(row); continue; }
 
-    if (signals.has(row.id)) {
-      const live = signals.get(row.id);
-      out.push({
-        ...row,
-        odds: num(live.match.awayStats?.max) ?? row.odds,
-        signalOdds: round3(num(live.match.awayStats?.avg)) ?? row.signalOdds,
-      });
-    } else {
-      removed.push(row);
-    }
+    const fuori = !signals.has(row.id);
+    const avg = round3(num(live.match.awayStats?.avg)) ?? row.signalOdds;
+    // Su una riga bloccata non si tocca la quota che hai inserito tu.
+    const next = isLocked(row)
+      ? { ...row, signalOdds: avg, offTarget: fuori }
+      : { ...row, odds: num(live.match.awayStats?.max) ?? row.odds, signalOdds: avg, offTarget: fuori };
+    if (fuori) offTarget.push(next);
+    out.push(next);
   }
 
   const present = new Set(out.map(r => r.id));
@@ -125,7 +129,7 @@ export function syncWithSignals(rows, data, now = new Date()) {
   }
 
   out.sort((a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime));
-  return { rows: out, added, removed, frozen };
+  return { rows: out, added, removed, frozen, offTarget };
 }
 
 /**
