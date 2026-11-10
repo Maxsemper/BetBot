@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T14:59:59.454Z",
+  "updatedAt": "2026-11-10T01:07:01.690Z",
   "items": [
     {
       "id": "e22f82b10fe71d230248b88fef87e58f",
@@ -47,10 +47,10 @@
       "avgAway": 1.5772727272727274,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.597777777777778,
+      "lastAvg": 1.5916666666666668,
       "lastBest": 1.7,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-09T14:59:59.452Z"
+      "lastSeenAt": "2026-11-10T01:07:01.689Z"
     },
     {
       "id": "7a62fe738bd20cfff6027c52fec05d51",
@@ -98,10 +98,10 @@
       "avgAway": 1.6049999999999998,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.6046666666666665,
+      "lastAvg": 1.6075000000000002,
       "lastBest": 1.7,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-09T14:59:59.452Z"
+      "lastSeenAt": "2026-11-10T01:07:01.689Z"
     },
     {
       "id": "cb513fd9869c9aa6ce506bb499bcd48b",
@@ -152,7 +152,7 @@
       "lastAvg": 1.2983333333333336,
       "lastBest": 1.35,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-09T14:59:59.452Z"
+      "lastSeenAt": "2026-11-10T01:07:01.689Z"
     },
     {
       "id": "651c1847b5cdcc85e60a140edd2282c4",
@@ -200,10 +200,10 @@
       "avgAway": 1.4324999999999999,
       "trend": null,
       "notifiedAt": "2026-11-07T21:23:03.260Z",
-      "lastAvg": 1.433157894736842,
+      "lastAvg": 1.4278947368421053,
       "lastBest": 1.5,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-09T14:59:59.452Z"
+      "lastSeenAt": "2026-11-10T01:07:01.689Z"
     },
     {
       "id": "813cc4970b2dcab8457490a332fb5a6c",
