@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-11-11T04:27:42.544Z",
+  "updatedAt": "2026-11-11T13:27:58.913Z",
   "active": {
     "cb513fd9869c9aa6ce506bb499bcd48b": {
       "triggeredAt": "2026-11-07T21:23:02.129Z",
-      "minAway": 1.19,
+      "minAway": 1.18,
       "commenceTime": "2026-11-21T17:00:00Z"
     },
     "e22f82b10fe71d230248b88fef87e58f": {
