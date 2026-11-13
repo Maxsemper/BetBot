@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-12T19:28:27.527Z",
+  "updatedAt": "2026-11-13T04:50:51.315Z",
   "items": [
     {
       "id": "e22f82b10fe71d230248b88fef87e58f",
@@ -50,7 +50,7 @@
       "lastAvg": 1.5966666666666667,
       "lastBest": 1.7,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-12T19:28:27.526Z"
+      "lastSeenAt": "2026-11-13T04:50:51.314Z"
     },
     {
       "id": "7a62fe738bd20cfff6027c52fec05d51",
@@ -98,10 +98,10 @@
       "avgAway": 1.6049999999999998,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.60375,
+      "lastAvg": 1.6031250000000001,
       "lastBest": 1.7,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-12T19:28:27.526Z"
+      "lastSeenAt": "2026-11-13T04:50:51.314Z"
     },
     {
       "id": "cb513fd9869c9aa6ce506bb499bcd48b",
@@ -152,7 +152,7 @@
       "lastAvg": 1.288888888888889,
       "lastBest": 1.35,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-12T19:28:27.526Z"
+      "lastSeenAt": "2026-11-13T04:50:51.314Z"
     },
     {
       "id": "651c1847b5cdcc85e60a140edd2282c4",
@@ -203,7 +203,7 @@
       "lastAvg": 1.4268421052631581,
       "lastBest": 1.5,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-12T19:28:27.526Z"
+      "lastSeenAt": "2026-11-13T04:50:51.314Z"
     },
     {
       "id": "813cc4970b2dcab8457490a332fb5a6c",
