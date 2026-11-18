@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-17T15:25:58.049Z",
+  "updatedAt": "2026-11-18T00:26:31.028Z",
   "items": [
     {
       "id": "3d57da6bdb20b65145bc2479ee5f2ae7",
@@ -47,10 +47,10 @@
       "avgAway": 1.6716666666666666,
       "trend": null,
       "notifiedAt": "2026-11-17T01:29:16.833Z",
-      "lastAvg": 1.6707692307692308,
+      "lastAvg": 1.6715384615384616,
       "lastBest": 1.77,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "dc63586a1b1d938a461d71bf5b36d982",
@@ -101,7 +101,7 @@
       "lastAvg": 1.65,
       "lastBest": 1.76,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "69fc06d019491be2aa1bf69b8f8041e3",
@@ -149,10 +149,10 @@
       "avgAway": 1.28,
       "trend": null,
       "notifiedAt": "2026-11-15T22:25:37.887Z",
-      "lastAvg": 1.2766666666666668,
+      "lastAvg": 1.2760000000000002,
       "lastBest": 1.33,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "a370db12aaff183a94f8e9a6acb6d4c9",
@@ -193,7 +193,7 @@
       "lastAvg": 1.8118181818181822,
       "lastBest": 1.91,
       "lastInTarget": false,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "33d92dabbd2606dfe9d31058f7b20cc8",
@@ -241,10 +241,10 @@
       "avgAway": 1.7181818181818185,
       "trend": null,
       "notifiedAt": "2026-11-14T21:55:26.309Z",
-      "lastAvg": 1.7240000000000002,
-      "lastBest": 1.78,
+      "lastAvg": 1.7293333333333334,
+      "lastBest": 1.8,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "40236ab976955345ebd1edb72abf6b22",
@@ -295,7 +295,7 @@
       "lastAvg": 1.5492857142857144,
       "lastBest": 1.62,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "24b99950496c624f7124922fc1bda8bd",
@@ -343,10 +343,10 @@
       "avgAway": 1.6724999999999999,
       "trend": null,
       "notifiedAt": "2026-11-14T21:55:26.309Z",
-      "lastAvg": 1.6799999999999997,
+      "lastAvg": 1.678333333333333,
       "lastBest": 1.76,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "e22f82b10fe71d230248b88fef87e58f",
@@ -394,10 +394,10 @@
       "avgAway": 1.5772727272727274,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.6161904761904764,
+      "lastAvg": 1.6176190476190475,
       "lastBest": 1.7,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "7a62fe738bd20cfff6027c52fec05d51",
@@ -445,10 +445,10 @@
       "avgAway": 1.6049999999999998,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.61235294117647,
+      "lastAvg": 1.6111764705882352,
       "lastBest": 1.7,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "cb513fd9869c9aa6ce506bb499bcd48b",
@@ -496,10 +496,10 @@
       "avgAway": 1.348333333333333,
       "trend": null,
       "notifiedAt": "2026-11-07T21:23:03.260Z",
-      "lastAvg": 1.2885714285714285,
+      "lastAvg": 1.2880952380952382,
       "lastBest": 1.34,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "651c1847b5cdcc85e60a140edd2282c4",
@@ -547,10 +547,10 @@
       "avgAway": 1.4324999999999999,
       "trend": null,
       "notifiedAt": "2026-11-07T21:23:03.260Z",
-      "lastAvg": 1.4247619047619045,
+      "lastAvg": 1.4276190476190478,
       "lastBest": 1.5,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-17T15:25:58.047Z"
+      "lastSeenAt": "2026-11-18T00:26:31.026Z"
     },
     {
       "id": "813cc4970b2dcab8457490a332fb5a6c",
