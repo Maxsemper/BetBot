@@ -1,6 +1,67 @@
 {
-  "updatedAt": "2026-11-19T05:42:45.658Z",
+  "updatedAt": "2026-11-19T15:09:06.013Z",
   "items": [
+    {
+      "id": "a370db12aaff183a94f8e9a6acb6d4c9",
+      "league": "Ligue 1",
+      "leagueKey": "soccer_france_ligue_one",
+      "home": "Auxerre",
+      "away": "Marseille",
+      "commenceTime": "2026-11-29T14:00:00Z",
+      "matchingBooks": [
+        {
+          "key": "winamax_fr",
+          "title": "Winamax (FR)",
+          "away": 1.68
+        },
+        {
+          "key": "unibet_fr",
+          "title": "Unibet (FR)",
+          "away": 1.69
+        },
+        {
+          "key": "pmu_fr",
+          "title": "PMU (FR)",
+          "away": 1.72
+        },
+        {
+          "key": "winamax_de",
+          "title": "Winamax (DE)",
+          "away": 1.76
+        },
+        {
+          "key": "tipico_de",
+          "title": "Tipico",
+          "away": 1.77
+        }
+      ],
+      "booksUnderThreshold": 5,
+      "bookCount": 13,
+      "bestAway": 1.91,
+      "minAway": 1.68,
+      "avgAway": 1.8038461538461539,
+      "trend": {
+        "direction": "flat",
+        "delta": -0.008,
+        "deltaPct": -0.44,
+        "fromOpen": 0,
+        "fromOpenPct": 0,
+        "open": 1.804,
+        "openedAt": "2026-11-16T04:31:33.000Z",
+        "previousAt": "2026-11-19T05:42:45.000Z",
+        "samples": 3,
+        "spark": [
+          1.804,
+          1.812,
+          1.804
+        ]
+      },
+      "notifiedAt": "2026-11-19T15:09:06.011Z",
+      "lastAvg": 1.8038461538461539,
+      "lastBest": 1.91,
+      "lastInTarget": true,
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
+    },
     {
       "id": "3d57da6bdb20b65145bc2479ee5f2ae7",
       "league": "Serie A",
@@ -50,7 +111,7 @@
       "lastAvg": 1.6684615384615387,
       "lastBest": 1.77,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "dc63586a1b1d938a461d71bf5b36d982",
@@ -101,7 +162,7 @@
       "lastAvg": 1.6423076923076922,
       "lastBest": 1.73,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "69fc06d019491be2aa1bf69b8f8041e3",
@@ -149,10 +210,10 @@
       "avgAway": 1.28,
       "trend": null,
       "notifiedAt": "2026-11-15T22:25:37.887Z",
-      "lastAvg": 1.2742857142857145,
+      "lastAvg": 1.2728571428571431,
       "lastBest": 1.33,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "a370db12aaff183a94f8e9a6acb6d4c9",
@@ -244,7 +305,7 @@
       "lastAvg": 1.7400000000000002,
       "lastBest": 1.83,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "40236ab976955345ebd1edb72abf6b22",
@@ -295,7 +356,7 @@
       "lastAvg": 1.5792307692307692,
       "lastBest": 1.67,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "24b99950496c624f7124922fc1bda8bd",
@@ -346,7 +407,7 @@
       "lastAvg": 1.6766666666666665,
       "lastBest": 1.76,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "e22f82b10fe71d230248b88fef87e58f",
@@ -394,10 +455,10 @@
       "avgAway": 1.5772727272727274,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.5871428571428574,
+      "lastAvg": 1.58952380952381,
       "lastBest": 1.66,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "7a62fe738bd20cfff6027c52fec05d51",
@@ -445,10 +506,10 @@
       "avgAway": 1.6049999999999998,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.5688235294117647,
+      "lastAvg": 1.5676470588235296,
       "lastBest": 1.66,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "cb513fd9869c9aa6ce506bb499bcd48b",
@@ -496,10 +557,10 @@
       "avgAway": 1.348333333333333,
       "trend": null,
       "notifiedAt": "2026-11-07T21:23:03.260Z",
-      "lastAvg": 1.283809523809524,
+      "lastAvg": 1.2814285714285716,
       "lastBest": 1.32,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "651c1847b5cdcc85e60a140edd2282c4",
@@ -547,10 +608,10 @@
       "avgAway": 1.4324999999999999,
       "trend": null,
       "notifiedAt": "2026-11-07T21:23:03.260Z",
-      "lastAvg": 1.431904761904762,
+      "lastAvg": 1.4309523809523808,
       "lastBest": 1.5,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-19T05:42:45.657Z"
+      "lastSeenAt": "2026-11-19T15:09:06.012Z"
     },
     {
       "id": "813cc4970b2dcab8457490a332fb5a6c",
