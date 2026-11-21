@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-21T05:24:43.773Z",
+  "updatedAt": "2026-11-21T14:05:57.231Z",
   "items": [
     {
       "id": "a370db12aaff183a94f8e9a6acb6d4c9",
@@ -60,7 +60,7 @@
       "lastAvg": 1.8057142857142858,
       "lastBest": 1.91,
       "lastInTarget": false,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "3d57da6bdb20b65145bc2479ee5f2ae7",
@@ -108,10 +108,10 @@
       "avgAway": 1.6716666666666666,
       "trend": null,
       "notifiedAt": "2026-11-17T01:29:16.833Z",
-      "lastAvg": 1.6723076923076925,
+      "lastAvg": 1.672857142857143,
       "lastBest": 1.77,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "dc63586a1b1d938a461d71bf5b36d982",
@@ -159,10 +159,10 @@
       "avgAway": 1.65,
       "trend": null,
       "notifiedAt": "2026-11-15T22:25:37.887Z",
-      "lastAvg": 1.6453333333333335,
+      "lastAvg": 1.648125,
       "lastBest": 1.73,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "69fc06d019491be2aa1bf69b8f8041e3",
@@ -210,10 +210,10 @@
       "avgAway": 1.28,
       "trend": null,
       "notifiedAt": "2026-11-15T22:25:37.887Z",
-      "lastAvg": 1.2742857142857145,
+      "lastAvg": 1.2714285714285716,
       "lastBest": 1.33,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "a370db12aaff183a94f8e9a6acb6d4c9",
@@ -305,7 +305,7 @@
       "lastAvg": 1.7492857142857148,
       "lastBest": 1.83,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "40236ab976955345ebd1edb72abf6b22",
@@ -356,7 +356,7 @@
       "lastAvg": 1.5846153846153848,
       "lastBest": 1.67,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "24b99950496c624f7124922fc1bda8bd",
@@ -407,7 +407,7 @@
       "lastAvg": 1.6864285714285714,
       "lastBest": 1.76,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "e22f82b10fe71d230248b88fef87e58f",
@@ -455,10 +455,10 @@
       "avgAway": 1.5772727272727274,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.5714285714285714,
-      "lastBest": 1.65,
+      "lastAvg": 1.5585714285714285,
+      "lastBest": 1.64,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "7a62fe738bd20cfff6027c52fec05d51",
@@ -506,10 +506,10 @@
       "avgAway": 1.6049999999999998,
       "trend": null,
       "notifiedAt": "2026-11-08T21:37:36.675Z",
-      "lastAvg": 1.5576470588235294,
+      "lastAvg": 1.5535294117647058,
       "lastBest": 1.66,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "cb513fd9869c9aa6ce506bb499bcd48b",
@@ -557,10 +557,10 @@
       "avgAway": 1.348333333333333,
       "trend": null,
       "notifiedAt": "2026-11-07T21:23:03.260Z",
-      "lastAvg": 1.2514285714285713,
-      "lastBest": 1.3,
+      "lastAvg": 1.2168181818181816,
+      "lastBest": 1.25,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "651c1847b5cdcc85e60a140edd2282c4",
@@ -608,10 +608,10 @@
       "avgAway": 1.4324999999999999,
       "trend": null,
       "notifiedAt": "2026-11-07T21:23:03.260Z",
-      "lastAvg": 1.4328571428571433,
+      "lastAvg": 1.4380952380952383,
       "lastBest": 1.5,
       "lastInTarget": true,
-      "lastSeenAt": "2026-11-21T05:24:43.771Z"
+      "lastSeenAt": "2026-11-21T14:05:57.229Z"
     },
     {
       "id": "813cc4970b2dcab8457490a332fb5a6c",
